@@ -10,6 +10,7 @@ public class PlayerController : MonoBehaviour
     CapsuleCollider2D playerCollision;
     CircleCollider2D feetCollider;
     [SerializeField] SlideSection storedSlide;
+    private SlideSection spamPrevention;
     [SerializeField] private PlayerControls playerButtons;
     [SerializeField] private PlayerStats playerVariables;
 
@@ -31,7 +32,8 @@ public class PlayerController : MonoBehaviour
     }
 
     public LayerMask layerGround;
-    private float storedVelocity = 0f;
+    private Vector2 storedVelocity = Vector2.zero;
+    private Vector2 offsetToFeetCheck;
 
     /* Start
      * 
@@ -43,6 +45,7 @@ public class PlayerController : MonoBehaviour
         playerPhysics = GetComponent<Rigidbody2D>();
         playerCollision = GetComponent<CapsuleCollider2D>();
         feetCollider = transform.Find("FT_Feet").GetComponent<CircleCollider2D>();
+        offsetToFeetCheck = new Vector2(0f, (playerCollision.size.y / 2f) + 0.1f);
     }
 
     /* Update
@@ -55,7 +58,7 @@ public class PlayerController : MonoBehaviour
         if (Input.GetKey(playerButtons.btnForward)) { PlayerMove(1f); }
         if (Input.GetKey(playerButtons.btnBackwards)) { PlayerMove(-1f); }
         if (Input.GetKey(playerButtons.btnCrouch)) { PlayerSlide(); }
-        if (Input.GetKeyUp(playerButtons.btnCrouch)) { PlayerSlideStop(); }
+        if (Input.GetKeyUp(playerButtons.btnCrouch) && storedSlide != null) { PlayerSlideStop(); }
         if (Input.GetKeyDown(playerButtons.btnJump)) { PlayerJump(); }
     }
 
@@ -80,6 +83,7 @@ public class PlayerController : MonoBehaviour
      */
     void PlayerSlide()
     {
+        if (spamPrevention != null) { return; }
         float snapDistance = 0.5f;
 
         if (storedSlide != null)
@@ -87,16 +91,20 @@ public class PlayerController : MonoBehaviour
             playerPhysics.isKinematic = true;
             playerPhysics.velocity = Vector2.zero;
             transform.position = storedSlide.MoveAlongSlide(
-                new Vector2(transform.position.x, transform.position.y) - new Vector2(0f, (playerCollision.size.y / 2)),
+                new Vector2(transform.position.x, transform.position.y) - offsetToFeetCheck,
                 storedVelocity,
-                true)
-                + new Vector2(0f, (playerCollision.size.y / 2));
+                out bool release, out Vector2 physVel, storedVelocity.x >= 0f)
+                + offsetToFeetCheck;
+            storedVelocity = physVel;
+            if (release) { PlayerSlideStop(); PlayerJump(); }
             return;
         }
         SlideSection.SlideData slide = SlideSection.SnapToSlidingEdge(playerPhysics.position,
+            playerPhysics.velocity,
+            out Vector2 velocityUponImpact,
             new ContactFilter2D() { layerMask = layerGround, useLayerMask = true},
             (playerCollision.size.y / 2) + snapDistance);
-        storedVelocity = playerPhysics.velocity.magnitude;
+        storedVelocity = velocityUponImpact;
         if (!slide.wasSuccessfull) { return; }
         transform.position = new Vector3(slide.attachPoint.x, slide.attachPoint.y + (playerCollision.size.y/2) + SLIDEOFFSETCONST, transform.position.z);
         storedSlide = slide.slideInstance;
@@ -104,9 +112,17 @@ public class PlayerController : MonoBehaviour
 
     void PlayerSlideStop()
     {
-        storedVelocity = 0f;
+        spamPrevention = storedSlide;
+        Invoke("ReleaseSlide", 1f);
         playerPhysics.isKinematic = false;
+        playerPhysics.velocity = storedVelocity;
+        storedVelocity = Vector2.zero;
         storedSlide = null;
+    }
+
+    void ReleaseSlide()
+    {
+        spamPrevention = null;
     }
 
     /* Player Jump
