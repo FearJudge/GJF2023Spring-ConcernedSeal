@@ -28,11 +28,14 @@ public class PlayerController : MonoBehaviour
     class PlayerStats
     {
         public float playerSpeed = 0.10f;
+        public float playerSpeedAir = 0.10f;
         public float jumpVelocity = 4f;
     }
 
     public LayerMask layerGround;
+    public LayerMask layerSlide;
     private Vector2 storedVelocity = Vector2.zero;
+    private int storedDirection = 0;
     private Vector2 offsetToFeetCheck;
 
     /* Start
@@ -57,9 +60,10 @@ public class PlayerController : MonoBehaviour
     {
         if (Input.GetKey(playerButtons.btnForward)) { PlayerMove(1f); }
         if (Input.GetKey(playerButtons.btnBackwards)) { PlayerMove(-1f); }
-        if (Input.GetKey(playerButtons.btnCrouch)) { PlayerSlide(); }
-        if (Input.GetKeyUp(playerButtons.btnCrouch) && storedSlide != null) { PlayerSlideStop(); }
-        if (Input.GetKeyDown(playerButtons.btnJump)) { PlayerJump(); }
+        if (Input.GetKey(playerButtons.btnCrouch) && storedSlide == null) { PlayerSlide(); }
+        else if (storedSlide != null) { PlayerSlide(); }
+        if (Input.GetKeyDown(playerButtons.btnCrouch) && storedSlide != null) { PlayerSlideStop(); }
+        if (Input.GetKeyDown(playerButtons.btnJump)) { bool ignore = PlayerSlideStop(); PlayerJump(ignore); }
     }
 
     /* Player Move
@@ -70,9 +74,10 @@ public class PlayerController : MonoBehaviour
      */
     void PlayerMove(float direction)
     {
+        if (storedSlide != null) { storedVelocity += new Vector2(direction * Time.deltaTime, 0f); }
         Collider2D[] colliders = new Collider2D[20];
-        int a = feetCollider.OverlapCollider(new ContactFilter2D() { useTriggers = true }, colliders);
-        if ( a <= 1 ) { return; }
+        int a = feetCollider.OverlapCollider(new ContactFilter2D() { useTriggers = true, useLayerMask = true, layerMask = layerGround }, colliders);
+        if ( a <= 0 ) { playerPhysics.AddForce(Vector2.right * direction * playerVariables.playerSpeedAir * Time.deltaTime); return; }
         playerPhysics.AddForce(Vector2.right * direction * playerVariables.playerSpeed * Time.deltaTime);
     }
 
@@ -93,16 +98,17 @@ public class PlayerController : MonoBehaviour
             transform.position = storedSlide.MoveAlongSlide(
                 new Vector2(transform.position.x, transform.position.y) - offsetToFeetCheck,
                 storedVelocity,
-                out bool release, out Vector2 physVel, storedVelocity.x >= 0f)
+                out bool release, out Vector2 physVel, out int direction, storedDirection)
                 + offsetToFeetCheck;
             storedVelocity = physVel;
-            if (release) { PlayerSlideStop(); PlayerJump(); }
+            storedDirection = direction;
+            if (release) { PlayerSlideStop(); PlayerJump(true); }
             return;
         }
         SlideSection.SlideData slide = SlideSection.SnapToSlidingEdge(playerPhysics.position,
             playerPhysics.velocity,
             out Vector2 velocityUponImpact,
-            new ContactFilter2D() { layerMask = layerGround, useLayerMask = true},
+            new ContactFilter2D() { layerMask = layerSlide, useLayerMask = true},
             (playerCollision.size.y / 2) + snapDistance);
         storedVelocity = velocityUponImpact;
         if (!slide.wasSuccessfull) { return; }
@@ -110,14 +116,28 @@ public class PlayerController : MonoBehaviour
         storedSlide = slide.slideInstance;
     }
 
-    void PlayerSlideStop()
+    void PlayerDive()
     {
+        playerPhysics.AddForce(Vector2.down * Time.deltaTime, ForceMode2D.Impulse);
+    }
+
+    bool PlayerSlideStop()
+    {
+        if (storedSlide == null) { return false; }
         spamPrevention = storedSlide;
-        Invoke("ReleaseSlide", 1f);
+        Invoke("ReleaseSlide", 0.25f);
         playerPhysics.isKinematic = false;
         playerPhysics.velocity = storedVelocity;
         storedVelocity = Vector2.zero;
+        storedDirection = 0;
         storedSlide = null;
+        return true;
+    }
+
+    public void WaterBounce()
+    {
+        if (Mathf.Abs(playerPhysics.velocity.x) < 6f) { Debug.Log("DROWN!"); return; }
+        playerPhysics.velocity = new Vector2(playerPhysics.velocity.x * 0.6f, Mathf.Abs(playerPhysics.velocity.y) * 0.6f);
     }
 
     void ReleaseSlide()
@@ -129,11 +149,14 @@ public class PlayerController : MonoBehaviour
      *  
      *  Does not handle input directly.
      */
-    void PlayerJump()
+    void PlayerJump(bool ignoreCheck = false)
     {
-        Collider2D[] colliders = new Collider2D[20];
-        int a = feetCollider.OverlapCollider(new ContactFilter2D() { useTriggers = true }, colliders);
-        if (a <= 1 || playerPhysics.velocity.y >= 2f) { return; }
+        if (!ignoreCheck)
+        {
+            Collider2D[] colliders = new Collider2D[20];
+            int a = feetCollider.OverlapCollider(new ContactFilter2D() { useTriggers = true, useLayerMask = true, layerMask = layerGround }, colliders);
+            if (a <= 0 || playerPhysics.velocity.y >= 2f) { return; }
+        }
         playerPhysics.velocity = new Vector2(playerPhysics.velocity.x, playerPhysics.velocity.y + playerVariables.jumpVelocity);
     }
 }
