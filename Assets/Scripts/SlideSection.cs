@@ -6,21 +6,31 @@ using UnityEngine.U2D;
 [RequireComponent(typeof(EdgeCollider2D))]
 public class SlideSection : MonoBehaviour
 {
-    const float RELEASEDIST = 0.8f;
+    const float RELEASEDIST = 0.7f;
     const float SLIDECOEFFICENT = 0.6f;
 
-    EdgeCollider2D ssc;
-    public struct SlideData
+    EdgeCollider2D slidableEdge;
+    public struct SlideSnapData
     {
         public SlideSection slideInstance;
         public Vector2 attachPoint;
+        public int slideIndex;
         public bool wasSuccessfull;
+    }
+
+    public struct SlideMoveData
+    {
+        public Vector2 newPosition;
+        public Vector2 newVelocity;
+        public int previousIndex;
+        public int travelingDirection;
+        public bool shouldRelease;
     }
 
     // Start is called before the first frame update
     void Start()
     {
-        ssc = GetComponent<EdgeCollider2D>();
+        slidableEdge = GetComponent<EdgeCollider2D>();
     }
 
     /* Snap To Sliding Edge
@@ -37,10 +47,10 @@ public class SlideSection : MonoBehaviour
      *  Returns:
      *  Slide Data, The Slide Section, the point from where it was found and if we even found a slide in the first place.
      */
-    public static SlideData SnapToSlidingEdge(Vector2 startPos, Vector2 velocityIn, out Vector2 velocityOut, ContactFilter2D contactFilter, float snap = 4f)
+    public static SlideSnapData SnapToSlidingEdge(Vector2 startPos, Vector2 velocityIn, out Vector2 velocityOut, ContactFilter2D contactFilter, float snap = 4f)
     {
         velocityOut = velocityIn;
-        SlideData returnable = new SlideData() { wasSuccessfull = false };
+        SlideSnapData returnable = new SlideSnapData() { wasSuccessfull = false };
         RaycastHit2D[] rch = new RaycastHit2D[5];
         int hit = Physics2D.Raycast(startPos, Vector2.down, contactFilter, rch, snap);
         if (hit <= 0) { return returnable; }
@@ -65,16 +75,28 @@ public class SlideSection : MonoBehaviour
      *  Returns:
      *  integer, index that is closest to reference.
      */
-    protected static int GetNearestPointInSpline(Vector2 reference, Vector2[] spline, Transform transformToReference)
+    protected static int GetNearestPointInSpline(Vector2 reference, Vector2[] spline, Transform transformToReference, int startingIndex = -1)
     {
         int indexWithSmallestDistance = 0;
         float smallestDistance = 9000f;
 
-        for (int i = 0; i < spline.Length; i++)
+        if (startingIndex >= 0)
         {
-            float distance = Vector2.Distance(reference, transformToReference.TransformPoint(spline[i]));
-            if (distance < smallestDistance) { smallestDistance = distance; indexWithSmallestDistance = i; }
+            for (int i = Mathf.Clamp(startingIndex - 4, 0, spline.Length - 1); i < Mathf.Clamp(startingIndex + 4, 0, spline.Length - 1); i++)
+            {
+                float distance = Vector2.Distance(reference, transformToReference.TransformPoint(spline[i]));
+                if (distance < smallestDistance) { smallestDistance = distance; indexWithSmallestDistance = i; }
+            }
         }
+        else
+        {
+            for (int i = 0; i < spline.Length; i++)
+            {
+                float distance = Vector2.Distance(reference, transformToReference.TransformPoint(spline[i]));
+                if (distance < smallestDistance) { smallestDistance = distance; indexWithSmallestDistance = i; }
+            }
+        }
+        
         return indexWithSmallestDistance;
     }
 
@@ -106,53 +128,53 @@ public class SlideSection : MonoBehaviour
         return 0;
     }
 
-    public Vector2 MoveAlongSlide(Vector2 currentFeetPos, Vector2 velocity, out bool release, out Vector2 releaseVelocity, out int direction, int moveDirection)
+    public SlideMoveData MoveAlongSlide(Vector2 currentFeetPos, Vector2 velocity, int moveDirection, int startIndex = -1)
     {
-        release = false;
-        int i = GetNearestPointInSpline(currentFeetPos, ssc.points, transform);
+        int i = GetNearestPointInSpline(currentFeetPos, slidableEdge.points, transform, startIndex);
+        SlideMoveData returnPackage = new SlideMoveData() { travelingDirection = moveDirection, previousIndex = i };
+
         Vector2 currentPos = currentFeetPos;
         float velocityMagnitude = velocity.magnitude;
         velocityMagnitude *= Time.deltaTime;
         bool breaking = false;
-        direction = moveDirection;
-        if (moveDirection == 0 && velocity.x > 0f) { moveDirection = GetSplineDirectionFromIndex(ssc.points, i, transform); }
-        else if (moveDirection == 0 && velocity.x <= 0f) { moveDirection = -1 * GetSplineDirectionFromIndex(ssc.points, i, transform); }
-        Debug.Log(string.Format("Spline Direction: {0}, Player Direction: {1}, Move Direction = {2}", GetSplineDirectionFromIndex(ssc.points, i, transform), direction, moveDirection));
+        if (moveDirection == 0 && velocity.x > 0f) { moveDirection = GetSplineDirectionFromIndex(slidableEdge.points, i, transform); }
+        else if (moveDirection == 0 && velocity.x <= 0f) { moveDirection = -1 * GetSplineDirectionFromIndex(slidableEdge.points, i, transform); }
         if (moveDirection == 1)
         {
-            i++; if (i > ssc.points.Length - 1) { i = ssc.points.Length - 1; }
-            while (breaking == false && i < ssc.points.Length - 1)
+            i++; if (i > slidableEdge.points.Length - 1) { i = slidableEdge.points.Length - 1; }
+            while (breaking == false && i < slidableEdge.points.Length)
             {
-                float distDelta = Vector2.Distance(currentPos, transform.TransformPoint(ssc.points[i]));
-                if (velocityMagnitude - distDelta < 0f) { currentPos = Vector2.MoveTowards(currentPos, transform.TransformPoint(ssc.points[i]), velocityMagnitude); breaking = true; }
+                float distDelta = Vector2.Distance(currentPos, transform.TransformPoint(slidableEdge.points[i]));
+                if (velocityMagnitude - distDelta < 0f) { currentPos = Vector2.MoveTowards(currentPos, transform.TransformPoint(slidableEdge.points[i]), velocityMagnitude); breaking = true; }
                 i++;
             }
-            if (Vector2.Distance(currentPos, transform.TransformPoint(ssc.points[ssc.points.Length - 1])) <= RELEASEDIST) { release = true; }
+            if (Vector2.Distance(currentPos, transform.TransformPoint(slidableEdge.points[slidableEdge.points.Length - 1])) <= RELEASEDIST) { returnPackage.shouldRelease = true; }
         }
         else if (moveDirection == -1)
         {
             i--; if (i < 0) { i = 0; }
             while (breaking == false && i >= 0)
             {
-                float distDelta = Vector2.Distance(currentPos, transform.TransformPoint(ssc.points[i]));
-                if (velocityMagnitude - distDelta < 0f) { currentPos = Vector2.MoveTowards(currentPos, transform.TransformPoint(ssc.points[i]), velocityMagnitude); breaking = true; }
+                float distDelta = Vector2.Distance(currentPos, transform.TransformPoint(slidableEdge.points[i]));
+                if (velocityMagnitude - distDelta < 0f) { currentPos = Vector2.MoveTowards(currentPos, transform.TransformPoint(slidableEdge.points[i]), velocityMagnitude); breaking = true; }
                 i--;
             }
-            if (Vector2.Distance(currentPos, transform.TransformPoint(ssc.points[0])) <= RELEASEDIST) { release = true; }
+            if (Vector2.Distance(currentPos, transform.TransformPoint(slidableEdge.points[0])) <= RELEASEDIST) { returnPackage.shouldRelease = true; }
         }
-        if (currentPos == currentFeetPos) { release = true; }
+        if (currentPos == currentFeetPos) { returnPackage.shouldRelease = true; }
         velocityMagnitude /= Time.deltaTime;
         velocityMagnitude -= (currentPos.y - currentFeetPos.y) * 1.6f;
         velocityMagnitude = Mathf.Clamp(velocityMagnitude, 0f, 500f);
-        releaseVelocity = (currentPos - currentFeetPos).normalized * (velocityMagnitude);
-        direction = moveDirection;
-        //if (currentPos.y > currentFeetPos.y && velocityMagnitude < 0.1f) { releaseVelocity *= -1; }
-        return currentPos;
+        returnPackage.newVelocity = (currentPos - currentFeetPos).normalized * (velocityMagnitude);
+        returnPackage.travelingDirection = moveDirection;
+        if (currentPos.y > currentFeetPos.y && velocityMagnitude < 0.1f) { returnPackage.newVelocity *= -1; }
+        returnPackage.newPosition = currentPos;
+        return returnPackage;
     }
 
     public static bool StickToSlide(Rigidbody2D rb, ContactFilter2D contactFilter, float snap = 4f)
     {
-        SlideData returnable = new SlideData() { wasSuccessfull = false };
+        SlideSnapData returnable = new SlideSnapData() { wasSuccessfull = false };
         RaycastHit2D[] rch = new RaycastHit2D[5];
         int hit = Physics2D.Raycast(rb.position, Vector2.down, contactFilter, rch, snap);
         if (hit <= 0) { return false; }

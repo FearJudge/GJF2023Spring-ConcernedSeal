@@ -1,0 +1,44 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.U2D;
+
+public class AutoPlatformBG : MonoBehaviour
+{
+    public SpriteShapeController backgroundIceBerg;
+    public IcebergSettings backgroundSettings;
+    protected SpriteShapeController platformShape;
+
+    [System.Serializable]
+    public class IcebergSettings
+    {
+        [Header("Use Order: Top-Left, Top-Right, Bottom-Left, Bottom-Right")]
+        public int[] pointsToStretch = new int[4] { 0, 1, 2, 3 };
+        public Vector3 leftBottomOffset = new Vector3(-5f, -70f, 0f);
+        public Vector3 rightBottomOffset = new Vector3(5f, -70f, 0f);
+    }
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        platformShape = GetComponent<SpriteShapeController>();
+        if (backgroundIceBerg != null) { GenerateBackground(); }
+    }
+
+    // Automatically generate all slide section's iceberg texture underneath the slide section.
+    void GenerateBackground()
+    {
+        backgroundIceBerg.spline.SetPosition(backgroundSettings.pointsToStretch[0], platformShape.spline.GetPosition(0));
+        backgroundIceBerg.spline.SetPosition(backgroundSettings.pointsToStretch[1], platformShape.spline.GetPosition(platformShape.spline.GetPointCount() - 1));
+        backgroundIceBerg.spline.SetPosition(backgroundSettings.pointsToStretch[3], platformShape.spline.GetPosition(0) + backgroundSettings.leftBottomOffset);
+        backgroundIceBerg.spline.SetPosition(backgroundSettings.pointsToStretch[2], platformShape.spline.GetPosition(platformShape.spline.GetPointCount() - 1) + backgroundSettings.rightBottomOffset);
+        for (int a = 1; a < platformShape.spline.GetPointCount() - 1; a++)
+        {
+            backgroundIceBerg.spline.InsertPointAt(a, platformShape.spline.GetPosition(a));
+            backgroundIceBerg.spline.SetTangentMode(a, platformShape.spline.GetTangentMode(a));
+            backgroundIceBerg.spline.SetLeftTangent(a, platformShape.spline.GetLeftTangent(a));
+            backgroundIceBerg.spline.SetRightTangent(a, platformShape.spline.GetRightTangent(a));
+        }
+    }
+
+}

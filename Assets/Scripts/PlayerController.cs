@@ -35,6 +35,7 @@ public class PlayerController : MonoBehaviour
     public LayerMask layerGround;
     public LayerMask layerSlide;
     private Vector2 storedVelocity = Vector2.zero;
+    private int storedIndex = -1;
     private int storedDirection = 0;
     private Vector2 offsetToFeetCheck;
 
@@ -95,17 +96,17 @@ public class PlayerController : MonoBehaviour
         {
             playerPhysics.isKinematic = true;
             playerPhysics.velocity = Vector2.zero;
-            transform.position = storedSlide.MoveAlongSlide(
+            SlideSection.SlideMoveData smd = storedSlide.MoveAlongSlide(
                 new Vector2(transform.position.x, transform.position.y) - offsetToFeetCheck,
-                storedVelocity,
-                out bool release, out Vector2 physVel, out int direction, storedDirection)
-                + offsetToFeetCheck;
-            storedVelocity = physVel;
-            storedDirection = direction;
-            if (release) { PlayerSlideStop(); PlayerJump(true); }
+                storedVelocity, storedDirection, storedIndex);
+            transform.position = smd.newPosition + offsetToFeetCheck;
+            storedVelocity = smd.newVelocity;
+            storedDirection = smd.travelingDirection;
+            storedIndex = smd.previousIndex;
+            if (smd.shouldRelease) { PlayerSlideStop(); PlayerJump(true); }
             return;
         }
-        SlideSection.SlideData slide = SlideSection.SnapToSlidingEdge(playerPhysics.position,
+        SlideSection.SlideSnapData slide = SlideSection.SnapToSlidingEdge(playerPhysics.position,
             playerPhysics.velocity,
             out Vector2 velocityUponImpact,
             new ContactFilter2D() { layerMask = layerSlide, useLayerMask = true},
@@ -130,6 +131,7 @@ public class PlayerController : MonoBehaviour
         playerPhysics.velocity = storedVelocity;
         storedVelocity = Vector2.zero;
         storedDirection = 0;
+        storedIndex = -1;
         storedSlide = null;
         return true;
     }
