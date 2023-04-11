@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 1842645887871385402}
   - component: {fileID: 1842645887871385401}
   - component: {fileID: 1912268085719583643}
+  - component: {fileID: 2253635898650272703}
   m_Layer: 0
   m_Name: PlatformPrefab
   m_TagString: Untagged
@@ -34,6 +35,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 8547236457843147790}
+  - {fileID: 620083455096958940}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -198,6 +200,28 @@ MonoBehaviour:
     pointsToStretch: 00000000010000000200000003000000
     leftBottomOffset: {x: -5, y: -70, z: 0}
     rightBottomOffset: {x: 5, y: -70, z: 0}
+  setZOrderBasedOnYHeight: 1
+--- !u!50 &2253635898650272703
+Rigidbody2D:
+  serializedVersion: 4
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1842645887871385398}
+  m_BodyType: 1
+  m_Simulated: 1
+  m_UseFullKinematicContacts: 0
+  m_UseAutoMass: 0
+  m_Mass: 1000
+  m_LinearDrag: 2
+  m_AngularDrag: 80
+  m_GravityScale: 0
+  m_Material: {fileID: 0}
+  m_Interpolate: 0
+  m_SleepingMode: 1
+  m_CollisionDetection: 0
+  m_Constraints: 0
 --- !u!1 &3716948926281353660
 GameObject:
   m_ObjectHideFlags: 0
@@ -359,3 +383,92 @@ MonoBehaviour:
   m_EnableTangents: 0
   m_GeometryCached: 0
   m_UTess2D: 0
+--- !u!1 &4442168403756022990
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 620083455096958940}
+  - component: {fileID: 1475642073573439689}
+  - component: {fileID: 7325296263068494360}
+  m_Layer: 0
+  m_Name: BreakingCollider
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &620083455096958940
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4442168403756022990}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1842645887871385403}
+  m_RootOrder: 1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!61 &1475642073573439689
+BoxCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4442168403756022990}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: 0, y: 0}
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0, y: 0}
+    oldSize: {x: 0, y: 0}
+    newSize: {x: 0, y: 0}
+    adaptiveTilingThreshold: 0
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  serializedVersion: 2
+  m_Size: {x: 1, y: 1}
+  m_EdgeRadius: 0
+--- !u!114 &7325296263068494360
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4442168403756022990}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dcccdaf46e8fb5a42887d483f99de41f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  breakOnContact: 0
+  mainParent: {fileID: 2253635898650272703}
+  platformEdges: {fileID: 1842645887871385397}
+  iceBergBG: {fileID: 6515518412978714663}
+  automaticallyDeterminedEdges: 1
+  whatBrakesMe:
+    serializedVersion: 2
+    m_Bits: 512
+  sinkingBehaviour:
+    isSinking: 0
+    initialWaveStrength: 1
+    initialWaveRotationAngle: 0.2
+    hangOnTime: 2.5
+    sinkingSpeedInitial: 0.05
+    sinkingSpeedAfterHang: 1
+    sinkingRotationAngle: 0.2
+    destroyWhenReachedDepthsOf: -100
+  crackedIceProfile: {fileID: 11400000, guid: ae0dbd19184448e4d93b24d8b7ccc691, type: 2}

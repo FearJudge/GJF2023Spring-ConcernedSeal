@@ -8,6 +8,7 @@ public class AutoPlatformBG : MonoBehaviour
     public SpriteShapeController backgroundIceBerg;
     public IcebergSettings backgroundSettings;
     protected SpriteShapeController platformShape;
+    public bool setZOrderBasedOnYHeight = true;
 
     [System.Serializable]
     public class IcebergSettings
@@ -23,6 +24,7 @@ public class AutoPlatformBG : MonoBehaviour
     {
         platformShape = GetComponent<SpriteShapeController>();
         if (backgroundIceBerg != null) { GenerateBackground(); }
+        if (setZOrderBasedOnYHeight) { ArrangeBackground(); }
     }
 
     // Automatically generate all slide section's iceberg texture underneath the slide section.
@@ -41,4 +43,14 @@ public class AutoPlatformBG : MonoBehaviour
         }
     }
 
+    void ArrangeBackground()
+    {
+        bool isValid = TryGetComponent<SpriteShapeRenderer>(out SpriteShapeRenderer ssr_platform);
+        if (!isValid) { return; }
+        ssr_platform.sortingOrder = Mathf.RoundToInt(-ssr_platform.transform.position.y * 2f);
+        if (backgroundIceBerg == null) { return; }
+        bool isAlsoValid = backgroundIceBerg.TryGetComponent<SpriteShapeRenderer>(out SpriteShapeRenderer ssr_background);
+        if (!isAlsoValid) { return; }
+        ssr_background.sortingOrder = Mathf.RoundToInt(-ssr_platform.transform.position.y * 2f - 1);
+    }
 }

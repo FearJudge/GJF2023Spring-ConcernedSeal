@@ -115,6 +115,7 @@ public class PlayerController : MonoBehaviour
         if (!slide.wasSuccessfull) { return; }
         transform.position = new Vector3(slide.attachPoint.x, slide.attachPoint.y + (playerCollision.size.y/2) + SLIDEOFFSETCONST, transform.position.z);
         storedSlide = slide.slideInstance;
+        transform.SetParent(storedSlide.transform);
     }
 
     void PlayerDive()
@@ -133,6 +134,7 @@ public class PlayerController : MonoBehaviour
         storedDirection = 0;
         storedIndex = -1;
         storedSlide = null;
+        transform.SetParent(null);
         return true;
     }
 
