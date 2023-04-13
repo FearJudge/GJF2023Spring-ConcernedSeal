@@ -46,11 +46,19 @@ public class AutoPlatformBG : MonoBehaviour
         }
 
         // Ensure that the camera actually has the relevant information to draw the
-        // reshaped sprite when it enters the screen.
+        // reshaped sprite when it enters the screen. Add a bit extra for safety.
+        float extraBounds = 4f;
         Bounds spriteshapeBounds = platformShape.spriteShapeRenderer.bounds;
-        spriteshapeBounds.size = new Vector3(spriteshapeBounds.size.x, spriteshapeBounds.size.y + backgroundSettings.leftBottomOffset.y, spriteshapeBounds.size.z);
+        spriteshapeBounds.size = new Vector3(
+            spriteshapeBounds.size.x + Mathf.Abs(backgroundSettings.leftBottomOffset.x) + extraBounds,
+            spriteshapeBounds.size.y + Mathf.Abs(backgroundSettings.leftBottomOffset.y) + extraBounds,
+            spriteshapeBounds.size.z);
         backgroundIceBerg.spriteShapeRenderer.bounds = spriteshapeBounds;
         Bounds spriteshapeLocalBounds = platformShape.spriteShapeRenderer.localBounds;
+        spriteshapeLocalBounds.size = new Vector3(
+            spriteshapeLocalBounds.size.x + Mathf.Abs(backgroundSettings.leftBottomOffset.x) + extraBounds,
+            spriteshapeLocalBounds.size.y + Mathf.Abs(backgroundSettings.leftBottomOffset.y) + extraBounds,
+            spriteshapeLocalBounds.size.z);
         backgroundIceBerg.spriteShapeRenderer.SetLocalAABB(spriteshapeLocalBounds);
     }
 
