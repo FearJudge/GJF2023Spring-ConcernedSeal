@@ -41,7 +41,9 @@ public class FragileIcePlatform : MonoBehaviour
         if (breakOnContact == false) { return; }
         if (whatBrakesMe == (whatBrakesMe | (1 << collision.gameObject.layer)))
         {
-            StartCoroutine(Sinking());
+            bool gotWaveData = collision.gameObject.TryGetComponent<WaterWave>(out WaterWave wv);
+            if (!gotWaveData) { BreakMe(Vector2.right, 5f); }
+            else { BreakMe(wv.movementSpeed, wv.magnitude); }
         }
     }
 
@@ -62,6 +64,11 @@ public class FragileIcePlatform : MonoBehaviour
     void SetBackgroundProfile()
     {
         iceBergBG.spriteShape = crackedIceProfile;
+    }
+
+    public void BreakMe(Vector2 direction, float magnitude = 5f)
+    {
+        StartCoroutine(Sinking());
     }
 
     IEnumerator Sinking()
@@ -87,5 +94,10 @@ public class FragileIcePlatform : MonoBehaviour
             xNudge = Mathf.Clamp(xNudge - Time.deltaTime, 0f, 20f);
         }
         Destroy(mainParent);
+    }
+
+    public float TimeUntilSinking()
+    {
+        return sinkingBehaviour.hangOnTime;
     }
 }

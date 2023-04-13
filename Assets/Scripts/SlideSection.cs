@@ -8,6 +8,11 @@ public class SlideSection : MonoBehaviour
 {
     const float RELEASEDIST = 0.7f;
     const float SLIDECOEFFICENT = 0.6f;
+    const float MINVELOCITY = 0.25f;
+    const float MINGRAVITYDEFYINGVELOCITY = 3f;
+    const float TOOLOWDISTANCE = 0.07f;
+    const float SLIDEFRICTIONNORMAL = 0.2f;
+    const float SLIDEFRICTIONGRAVITYDEFYING = 3.4f;
 
     EdgeCollider2D slidableEdge;
     public struct SlideSnapData
@@ -22,9 +27,11 @@ public class SlideSection : MonoBehaviour
     {
         public Vector2 newPosition;
         public Vector2 newVelocity;
+        public Vector2 newNormal;
         public int previousIndex;
         public int travelingDirection;
         public bool shouldRelease;
+        public bool shouldDrop;
     }
 
     // Start is called before the first frame update
@@ -49,16 +56,29 @@ public class SlideSection : MonoBehaviour
      */
     public static SlideSnapData SnapToSlidingEdge(Vector2 startPos, Vector2 velocityIn, out Vector2 velocityOut, ContactFilter2D contactFilter, float snap = 4f)
     {
+        bool AttemptToSnap(float heightHelp, out RaycastHit2D snapAttempt)
+        {
+            RaycastHit2D[] snapHits = new RaycastHit2D[5];
+            int collided = Physics2D.Raycast(startPos + (Vector2.up * heightHelp), Vector2.down, contactFilter, snapHits, snap);
+            snapAttempt = snapHits[0];
+            if (snapAttempt.distance < TOOLOWDISTANCE) { return false; }
+            return (collided > 0);
+        }
+
         velocityOut = velocityIn;
         SlideSnapData returnable = new SlideSnapData() { wasSuccessfull = false };
-        RaycastHit2D[] rch = new RaycastHit2D[5];
-        int hit = Physics2D.Raycast(startPos, Vector2.down, contactFilter, rch, snap);
-        if (hit <= 0) { return returnable; }
-        returnable.attachPoint = rch[0].point;
-        returnable.slideInstance = rch[0].transform.GetComponent<SlideSection>();
+        bool gotHit = false;
+        RaycastHit2D hitFound = new RaycastHit2D();
+        for (int a = 0; a < 3; a++)
+        {
+            if (AttemptToSnap(a * 0.25f, out RaycastHit2D hit)) { hitFound = hit; gotHit = true; break; }
+        }
+        if (!gotHit) { return returnable; }
+        returnable.attachPoint = hitFound.point;
+        returnable.slideInstance = hitFound.transform.GetComponent<SlideSection>();
         returnable.wasSuccessfull = true;
 
-        velocityOut = (velocityIn + (rch[0].normal * (velocityIn.magnitude * SLIDECOEFFICENT)));
+        velocityOut = (velocityIn + (hitFound.normal * (velocityIn.magnitude * SLIDECOEFFICENT)));
 
         return returnable;
     }
@@ -116,8 +136,8 @@ public class SlideSection : MonoBehaviour
     {
         if (spline.Length < indexToCheckFrom || indexToCheckFrom < 0) { return 0; }
         float xOfPoint = transformToReference.TransformPoint(spline[indexToCheckFrom]).x;
-        float xOfPointPlus = 0f;
-        float xOfPointMinus = 0f;
+        float xOfPointPlus = 99999f;
+        float xOfPointMinus = -99999f;
         if (indexToCheckFrom != spline.Length - 1) { xOfPointPlus = transformToReference.TransformPoint(spline[indexToCheckFrom + 1]).x; }
         if (indexToCheckFrom != 0) { xOfPointMinus = transformToReference.TransformPoint(spline[indexToCheckFrom - 1]).x; }
 
@@ -162,12 +182,18 @@ public class SlideSection : MonoBehaviour
             if (Vector2.Distance(currentPos, transform.TransformPoint(slidableEdge.points[0])) <= RELEASEDIST) { returnPackage.shouldRelease = true; }
         }
         if (currentPos == currentFeetPos) { returnPackage.shouldRelease = true; }
+
+        returnPackage.travelingDirection = moveDirection;
+        returnPackage.newNormal = Vector2.Perpendicular((currentPos - currentFeetPos).normalized);
         velocityMagnitude /= Time.deltaTime;
         velocityMagnitude -= (currentPos.y - currentFeetPos.y) * 1.6f;
+        if ((moveDirection > 0 ? (returnPackage.newNormal.y < 0f) : (returnPackage.newNormal.y > 0f)))
+        { velocityMagnitude -= SLIDEFRICTIONGRAVITYDEFYING * Time.deltaTime; } else { velocityMagnitude -= SLIDEFRICTIONNORMAL * Time.deltaTime; }
         velocityMagnitude = Mathf.Clamp(velocityMagnitude, 0f, 500f);
+        if ((moveDirection > 0 ? (returnPackage.newNormal.y < 0f) : (returnPackage.newNormal.y > 0f))
+            && velocityMagnitude < MINGRAVITYDEFYINGVELOCITY) { returnPackage.shouldDrop = true; }
         returnPackage.newVelocity = (currentPos - currentFeetPos).normalized * (velocityMagnitude);
-        returnPackage.travelingDirection = moveDirection;
-        if (currentPos.y > currentFeetPos.y && velocityMagnitude < 0.1f) { returnPackage.newVelocity *= -1; }
+        if (currentPos.y > currentFeetPos.y && velocityMagnitude < MINVELOCITY) { returnPackage.newVelocity *= -1; returnPackage.travelingDirection *= -1; }
         returnPackage.newPosition = currentPos;
         return returnPackage;
     }
