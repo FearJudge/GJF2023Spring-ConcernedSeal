@@ -6,6 +6,7 @@ public class LevelLoader : MonoBehaviour
 {
     public delegate void LevelStateChanged();
     public static event LevelStateChanged LevelCanStart;
+    public static event LevelStateChanged LevelEnds;
 
     public static bool pausedPlayer = false;
     public bool isPreloaded = true;
@@ -14,6 +15,7 @@ public class LevelLoader : MonoBehaviour
     public GameObject showWhenPausing;
     public GameObject showWhenFinishing;
     public static LevelLoader instance;
+    bool lockFailureSuccess = false;
 
     // Start is called before the first frame update
     void Awake()
@@ -46,12 +48,12 @@ public class LevelLoader : MonoBehaviour
     {
         SetAllScreensOff();
         LevelCanStart?.Invoke();
-        LevelCanStart = null;
         Time.timeScale = 1f;
     }
 
     public static void PlayerHasFailed()
     {
+        if (instance.lockFailureSuccess) { return; } else { instance.lockFailureSuccess = true; }
         instance.SetAllScreensOff();
         instance.showWhenRetrying.SetActive(true);
         Time.timeScale = 0.05f;
@@ -66,8 +68,9 @@ public class LevelLoader : MonoBehaviour
 
     public static void PlayerHasSucceeded()
     {
+        if (instance.lockFailureSuccess) { return; } else { instance.lockFailureSuccess = true; }
         instance.SetAllScreensOff();
         instance.showWhenFinishing.SetActive(true);
-        Time.timeScale = 0.05f;
+        LevelEnds?.Invoke();
     }
 }

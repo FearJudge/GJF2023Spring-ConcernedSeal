@@ -110,6 +110,13 @@ public class MenuController : MonoBehaviour
         else { NextCustom(); }
     }
 
+    public void StartStandardGame()
+    {
+        LevelManager.currentLevelNum = 0;
+        LevelManager.isGoingThroughCustomData = false;
+        NextScene();
+    }
+
     public void ReturnToMainMenu()
     {
         GameObject changer = Instantiate(lc);

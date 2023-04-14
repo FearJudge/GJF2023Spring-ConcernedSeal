@@ -77,6 +77,7 @@ public class FragileIcePlatform : MonoBehaviour
         sinkingBehaviour.isSinking = true;
         float timer = 0f;
         float xNudge = sinkingBehaviour.initialWaveStrength;
+        SoundManager.PlaySound("FragileIce", transform.position + new Vector3(0f, 0f, Camera.main.transform.position.z));
         while (mainParent.transform.position.y >= sinkingBehaviour.destroyWhenReachedDepthsOf)
         {
             timer += Time.deltaTime;

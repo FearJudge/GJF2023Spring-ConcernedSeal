@@ -4,6 +4,13 @@ using UnityEngine;
 
 public class CameraTracker : MonoBehaviour
 {
+    public enum TrackingTarget
+    {
+        NoTarget,
+        Player,
+        Camera
+    }
+
     public static Transform trackableOverride = null;
     public Transform toTrack;
     private Transform initialTracked;

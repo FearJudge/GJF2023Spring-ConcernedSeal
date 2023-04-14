@@ -54,13 +54,24 @@ public static class WaterRiseScript
     public static List<IWaterRisable> waterInstances = new List<IWaterRisable>();
 
     public static float waterLevel = 0f;
-    public static float waterLevelSpeed = 0.002f;
-    public static float waterLevelDelay = 0.1f;
+    static float waterTempPrivate = 30f;
+    public static float WaterTemp { get { return waterTempPrivate; } set { ModifyWaterTemperature(value); } }
+    static float waterLevelSpeed = 0.003f;
+    static float waterLevelDelay = 0.1f;
     static bool waterRising = false;
+
+    static void ModifyWaterTemperature(float newValue)
+    {
+        waterTempPrivate = newValue;
+        waterLevelDelay = waterTempPrivate / 300f;
+        waterLevelSpeed = waterTempPrivate / 10000f;
+    }
 
     public static IEnumerator StartWaterRising()
     {
         if (waterRising) { yield break; }
+        waterLevel = 0f;
+        waterTempPrivate = LevelManager.waterTemperature;
         waterRising = true;
         while (waterRising)
         {

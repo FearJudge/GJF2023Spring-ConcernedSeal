@@ -9,6 +9,7 @@ public class SlideSection : MonoBehaviour
     const float RELEASEDIST = 0.7f;
     const float SLIDECOEFFICENT = 0.6f;
     const float MINVELOCITY = 0.25f;
+    const float STANDSTILLDISTANCE = 0.0001f;
     const float MINGRAVITYDEFYINGVELOCITY = 3f;
     const float TOOLOWDISTANCE = 0.07f;
     const float SLIDEFRICTIONNORMAL = 0.2f;
@@ -32,6 +33,7 @@ public class SlideSection : MonoBehaviour
         public int travelingDirection;
         public bool shouldRelease;
         public bool shouldDrop;
+        public bool useOldNormal;
     }
 
     // Start is called before the first frame update
@@ -128,7 +130,7 @@ public class SlideSection : MonoBehaviour
      *  index To Check From (integer) - The index from which we want to know direction of.
      *  transform To Reference (Transform) - The transform which owns the spline, to make sure the position matches globally, instead of locally.
      *  
-     *  Checks adjacent indexes from a pline to determine if we can assume a positive x when moving forward in the array, or not.
+     *  Checks adjacent indexes from a spline to determine if we can assume a positive x when moving forward in the array, or not.
      *  Returns:
      *  integer, direction match : 1 = Positive in Spline is Positive in X, -1 = Negative in Spline is Positive in X, 0 neither is true.
      */
@@ -141,10 +143,11 @@ public class SlideSection : MonoBehaviour
         if (indexToCheckFrom != spline.Length - 1) { xOfPointPlus = transformToReference.TransformPoint(spline[indexToCheckFrom + 1]).x; }
         if (indexToCheckFrom != 0) { xOfPointMinus = transformToReference.TransformPoint(spline[indexToCheckFrom - 1]).x; }
 
+
         if (xOfPointPlus > xOfPoint && xOfPoint > xOfPointMinus) { return 1; }
         if (xOfPointMinus > xOfPoint && xOfPoint > xOfPointPlus) { return -1; }
-        if (xOfPointMinus > xOfPointPlus) { return -1; }
-        if (xOfPointPlus > xOfPointMinus) { return 1; }
+        if (xOfPointMinus > xOfPoint && xOfPointPlus == 99999f) { return -1; }
+        if (xOfPointPlus > xOfPoint && xOfPointMinus == -99999f) { return 1; }
         return 0;
     }
 
@@ -168,7 +171,7 @@ public class SlideSection : MonoBehaviour
                 if (velocityMagnitude - distDelta < 0f) { currentPos = Vector2.MoveTowards(currentPos, transform.TransformPoint(slidableEdge.points[i]), velocityMagnitude); breaking = true; }
                 i++;
             }
-            if (Vector2.Distance(currentPos, transform.TransformPoint(slidableEdge.points[slidableEdge.points.Length - 1])) <= RELEASEDIST) { returnPackage.shouldRelease = true; }
+            if (Vector2.Distance(currentPos, transform.TransformPoint(slidableEdge.points[slidableEdge.points.Length - 1])) <= RELEASEDIST) { Debug.Log("Reached Pos End"); returnPackage.shouldRelease = true; }
         }
         else if (moveDirection == -1)
         {
@@ -179,12 +182,12 @@ public class SlideSection : MonoBehaviour
                 if (velocityMagnitude - distDelta < 0f) { currentPos = Vector2.MoveTowards(currentPos, transform.TransformPoint(slidableEdge.points[i]), velocityMagnitude); breaking = true; }
                 i--;
             }
-            if (Vector2.Distance(currentPos, transform.TransformPoint(slidableEdge.points[0])) <= RELEASEDIST) { returnPackage.shouldRelease = true; }
+            if (Vector2.Distance(currentPos, transform.TransformPoint(slidableEdge.points[0])) <= RELEASEDIST) { Debug.Log("Reached Neg End"); returnPackage.shouldRelease = true; }
         }
-        if (currentPos == currentFeetPos) { returnPackage.shouldRelease = true; }
 
         returnPackage.travelingDirection = moveDirection;
-        returnPackage.newNormal = Vector2.Perpendicular((currentPos - currentFeetPos).normalized);
+        if (Vector2.Distance(currentPos, currentFeetPos) > STANDSTILLDISTANCE ) { returnPackage.newNormal = Vector2.Perpendicular((currentPos - currentFeetPos).normalized); }
+        else { returnPackage.useOldNormal = true; }
         velocityMagnitude /= Time.deltaTime;
         velocityMagnitude -= (currentPos.y - currentFeetPos.y) * 1.6f;
         if ((moveDirection > 0 ? (returnPackage.newNormal.y < 0f) : (returnPackage.newNormal.y > 0f)))

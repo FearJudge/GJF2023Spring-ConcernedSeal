@@ -12,6 +12,7 @@ public static class LevelManager
     public static bool isGoingThroughCustomData = false;
     public static int currentLevelNum = 0;
     public static List<string> customLevelDataList = new List<string>();
+    public static float waterTemperature = 30f;
 
     public static string GetNextStandardLevelName()
     {

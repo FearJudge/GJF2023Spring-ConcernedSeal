@@ -20,6 +20,11 @@ public class WaveGlacier : MonoBehaviour
         LevelLoader.LevelCanStart += BreakOffChunk;
     }
 
+    private void OnDestroy()
+    {
+        LevelLoader.LevelCanStart -= BreakOffChunk;
+    }
+
     public void BreakOffChunk()
     {
         StartCoroutine(SequenceForWave());

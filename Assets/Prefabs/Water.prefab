@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 1374452164079738060}
   - component: {fileID: 1374452164079738049}
   - component: {fileID: 1374452164079738048}
+  - component: {fileID: 1348470990067420115}
   - component: {fileID: 1374452164079738061}
   m_Layer: 8
   m_Name: Water
@@ -145,6 +146,26 @@ MonoBehaviour:
   targetTransform: {fileID: 0}
   resistance: {x: 0.65, y: 0}
   isPartOfGlobalWaterPool: 1
+--- !u!114 &1348470990067420115
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1374452164079738058}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fb8e999493286404ead2870e7707573c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  soundToPlay: Waves
+  trackable: {fileID: 0}
+  trackThis: 1
+  distanceToStartPlaying: 24
+  distanceToMaxVolume: 1
+  ignoreX: 1
+  ignoreY: 0
+  updateFrequency: 0.5
 --- !u!50 &1374452164079738061
 Rigidbody2D:
   serializedVersion: 4
