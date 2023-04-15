@@ -31,10 +31,10 @@ public class PlayerController : MonoBehaviour
     [System.Serializable]
     class PlayerControls
     {
-        public KeyCode btnForward = KeyCode.D;
-        public KeyCode btnBackwards = KeyCode.A;
-        public KeyCode btnJump = KeyCode.W;
-        public KeyCode btnCrouch = KeyCode.S;
+        public string btnHorizontalControl = "Horizontal";
+        public string btnVerticalControl = "Vertical";
+        public bool heldYMinus = false;
+        public bool heldYPlus = false;
     }
 
     [System.Serializable]
@@ -112,12 +112,22 @@ public class PlayerController : MonoBehaviour
 
     private void CheckPlayerInputs()
     {
-        if (Input.GetKey(playerButtons.btnForward)) { PlayerMove(1f); }
-        if (Input.GetKey(playerButtons.btnBackwards)) { PlayerMove(-1f); }
-        if (Input.GetKeyDown(playerButtons.btnCrouch) && storedSlide != null) { PlayerSlideStop(); }
-        else if (Input.GetKey(playerButtons.btnCrouch) && storedSlide == null) { PlayerSlide(); }
+        float x = Input.GetAxisRaw("Horizontal");
+        float y = Input.GetAxisRaw("Vertical");
+        if (x != 0f) { PlayerMove(x); }
+        if (!playerButtons.heldYMinus && y < 0 && storedSlide != null) { PlayerSlideStop(); }
+        else if (y < 0 && storedSlide == null) { PlayerSlide();  }
         else if (storedSlide != null) { PlayerSlide(); }
-        if (Input.GetKeyDown(playerButtons.btnJump)) { bool ignore = PlayerSlideStop(); if (ignore) { PlayerJumpOffSlide(storedNormal); } else { PlayerJump(); } }
+        if (y >= 0) { playerButtons.heldYMinus = false; }
+        else { playerButtons.heldYMinus = true; }
+        if (y > 0 && !playerButtons.heldYPlus)
+        {
+            bool ignore = PlayerSlideStop(); if (ignore)
+            { PlayerJumpOffSlide(storedNormal); }
+            else { PlayerJump(); }
+            playerButtons.heldYPlus = true;
+        }
+        else if (y <= 0) { playerButtons.heldYPlus = false; }
     }
 
     /* Player Move
@@ -231,7 +241,7 @@ public class PlayerController : MonoBehaviour
             storedPlatformPos = newPlatformPos;
         }
 
-        if (platformsStandingOnCount <= 0) { storedPlatformExists = false; storedPlatformPos = Vector3.zero; return; }
+        if (platformsStandingOnCount <= 0 || storedSlide != null) { storedPlatformExists = false; storedPlatformPos = Vector3.zero; return; }
         else
         {
             if (storedPlatformExists == false)

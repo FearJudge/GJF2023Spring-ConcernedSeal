@@ -31,9 +31,8 @@ public class WaterScript : MonoBehaviour, WaterRiseScript.IWaterRisable
     private void OnTriggerEnter2D(Collider2D collision)
     {
         Rigidbody2D hitActor = collision.gameObject.GetComponent<Rigidbody2D>();
-        if (hitActor != null)
+        if (hitActor != null && prefabOfWaterSplash != null)
         {
-            if (prefabOfWaterSplash == null) { return; }
             ContactPoint2D[] collisions = new ContactPoint2D[20];
             int a = collision.GetContacts(collisions);
             Vector3 pos = collision.gameObject.transform.position;

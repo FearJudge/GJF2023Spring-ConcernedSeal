@@ -40,6 +40,7 @@ public class WaveGlacier : MonoBehaviour
         GameObject wave = Instantiate(wavePrefab, spawnPosition.position, spawnPosition.rotation);
         waterWaveReference = wave.GetComponent<WaterWave>();
         waterWaveReference.magnitude = waveMagnitude;
+        waterWaveReference.movementSpeed = waveDirection;
         yield return new WaitForSeconds(0.3f);
         if (showToPlayer) { CameraTracker.trackableOverride = null; LevelLoader.pausedPlayer = false; }
     }
