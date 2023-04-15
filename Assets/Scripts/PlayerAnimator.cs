@@ -5,16 +5,37 @@ using UnityEngine;
 public class PlayerAnimator : MonoBehaviour
 {
     public PlayerController controller;
+    public Animator animator;
     public SpriteRenderer playerCharacter;
 
     public ParticleSystem slideParticles;
     ParticleSystem.MainModule slideParticlesMain;
+    public ParticleSystem snowParticles;
+    ParticleSystem.MainModule snowParticlesMain;
     AudioSource slideSound = null;
+    bool flipInProgress = false;
+    public float flipTime = 1f;
 
     private void Awake()
     {
-        if (slideParticles == null) { slideParticles = gameObject.GetComponentInChildren<ParticleSystem>(); }
+        if (slideParticles == null) { slideParticles = transform.Find("SlidingParticles").GetComponent<ParticleSystem>(); }
         if (slideParticles != null) { slideParticlesMain = slideParticles.main; }
+        if (snowParticles == null) { snowParticles = transform.Find("SnowParticles").GetComponent<ParticleSystem>(); }
+        if (snowParticles != null) { snowParticlesMain = snowParticles.main; }
+        PlayerController.HaveFinishedLevel += Flip;
+        PlayerController.HaveReleasedFromSlide += Flip;
+        PlayerController.HaveJumpedFromSlide += QuickFlip;
+        PlayerController.HaveHitWater += GotWet;
+        PlayerController.HaveLandedOnSnow += SnowPuff;
+    }
+
+    private void OnDestroy()
+    {
+        PlayerController.HaveFinishedLevel -= Flip;
+        PlayerController.HaveReleasedFromSlide -= Flip;
+        PlayerController.HaveJumpedFromSlide -= QuickFlip;
+        PlayerController.HaveHitWater -= GotWet;
+        PlayerController.HaveLandedOnSnow -= SnowPuff;
     }
 
     // Update is called once per frame
@@ -22,6 +43,7 @@ public class PlayerAnimator : MonoBehaviour
     {
         CheckForPlayerDirection();
         CheckForStoredSlide();
+        UpdateAnimatorState();
     }
 
     void CheckForPlayerDirection()
@@ -46,7 +68,10 @@ public class PlayerAnimator : MonoBehaviour
     {
         if (controller.storedSlide == null) {
             playerCharacter.transform.localPosition = Vector3.zero;
-            playerCharacter.transform.localRotation = Quaternion.identity;
+            if (!flipInProgress)
+            {
+                playerCharacter.transform.localRotation = Quaternion.identity;
+            }
             if (slideParticles.isPlaying) { slideParticles.Stop(); }
             if (slideSound != null) { slideSound.Stop(); slideSound = null; }
             return; }
@@ -64,7 +89,55 @@ public class PlayerAnimator : MonoBehaviour
         {
             float volume = Mathf.Clamp(controller.storedVelocity.magnitude / 20f, 0f, 1f);
             slideSound.volume = volume;
+        } 
+    }
+
+    void UpdateAnimatorState()
+    {
+        bool isSliding = controller.storedSlide != null;
+        animator.SetBool("Sliding", isSliding);
+        if (!isSliding) { animator.SetFloat("Movement", Mathf.Abs(controller.playerPhysics.velocity.x)); }
+        else { animator.SetFloat("Movement", Mathf.Abs(controller.storedVelocity.x)); }
+    }
+
+    public void Flip()
+    {
+        StartCoroutine(DoAFlip(flipTime));
+    }
+
+    public void QuickFlip()
+    {
+        StartCoroutine(DoAFlip(flipTime / 3f));
+    }
+
+    public void GotWet()
+    {
+        animator.SetTrigger("Wet");
+    }
+
+    public void SnowPuff()
+    {
+        float impact = controller.playerPhysics.velocity.magnitude * 0.12f;
+        Debug.Log(impact);
+        snowParticlesMain.startSpeedMultiplier = impact;
+        snowParticlesMain.startLifetimeMultiplier = impact;
+        snowParticles.Play();
+    }
+
+    IEnumerator DoAFlip(float rotTime = 2f)
+    {
+        if (flipInProgress) { yield break; }
+        flipInProgress = true;
+        float dir = (controller.playerPhysics.velocity.x > 0f) ? 1f : -1f;
+        float rotPerMs = 360f / rotTime;
+        float rot = 0f;
+        while (rot < 360f)
+        {
+            rot += rotPerMs * Time.deltaTime;
+            rot = Mathf.Clamp(rot, 0f, 360f);
+            playerCharacter.transform.localRotation = Quaternion.AngleAxis(dir * rot, Vector3.forward);
+            yield return null;
         }
-            
+        flipInProgress = false;
     }
 }

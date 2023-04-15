@@ -6,12 +6,16 @@ public class WaterScript : MonoBehaviour, WaterRiseScript.IWaterRisable
 {
     public bool isPartOfGlobalWaterPool = true;
     public bool instantDrown = false;
+    public GameObject prefabOfWaterSplash;
+    Collider2D ownCollider;
+
     float startingY = 0f;
 
     private void Start()
     {
         if (isPartOfGlobalWaterPool) { WaterRiseScript.waterInstances.Add(this); StartCoroutine(WaterRiseScript.StartWaterRising()); }
         startingY = transform.position.y;
+        ownCollider = GetComponent<Collider2D>();
     }
 
     private void OnDestroy()
@@ -26,12 +30,32 @@ public class WaterScript : MonoBehaviour, WaterRiseScript.IWaterRisable
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
+        Rigidbody2D hitActor = collision.gameObject.GetComponent<Rigidbody2D>();
+        if (hitActor != null)
+        {
+            if (prefabOfWaterSplash == null) { return; }
+            ContactPoint2D[] collisions = new ContactPoint2D[20];
+            int a = collision.GetContacts(collisions);
+            Vector3 pos = collision.gameObject.transform.position;
+            for (int i = 0; i < a; i++)
+            {
+                if (collisions[i].otherCollider == ownCollider) { pos = collisions[i].point; }
+            }
+            GameObject settingsForPrefab = Instantiate(prefabOfWaterSplash, pos, Quaternion.identity);
+            ParticleSystem psForPrefab = settingsForPrefab.GetComponent<ParticleSystem>();
+            ParticleSystem.MainModule psmmForPrefab = psForPrefab.main;
+            float hitImpact = Mathf.Clamp(Mathf.Abs(hitActor.velocity.y) * 0.2f, 0.1f, 4f);
+            psmmForPrefab.startSpeedMultiplier = hitImpact;
+            psmmForPrefab.startLifetimeMultiplier = Mathf.Clamp(hitImpact, 0.5f, 2f);
+            psForPrefab.Play();
+        }
         if (collision.TryGetComponent<PlayerController>(out PlayerController pc))
         {
             if (instantDrown) { pc.Drowned(true); }
             pc.submerged = true;
             pc.WaterBounce();
         }
+        
     }
 
     private void OnTriggerExit2D(Collider2D collision)

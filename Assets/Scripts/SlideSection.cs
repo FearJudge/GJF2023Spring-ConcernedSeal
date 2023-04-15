@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -14,6 +15,7 @@ public class SlideSection : MonoBehaviour
     const float TOOLOWDISTANCE = 0.07f;
     const float SLIDEFRICTIONNORMAL = 0.2f;
     const float SLIDEFRICTIONGRAVITYDEFYING = 3.4f;
+    const float MINSNAPATENDDISTANCE = 0.15f;
 
     EdgeCollider2D slidableEdge;
     public struct SlideSnapData
@@ -76,13 +78,28 @@ public class SlideSection : MonoBehaviour
             if (AttemptToSnap(a * 0.25f, out RaycastHit2D hit)) { hitFound = hit; gotHit = true; break; }
         }
         if (!gotHit) { return returnable; }
+        Vector2 hitNormal = hitFound.normal;
         returnable.attachPoint = hitFound.point;
         returnable.slideInstance = hitFound.transform.GetComponent<SlideSection>();
+        if (Vector2.Distance(returnable.attachPoint, returnable.slideInstance.slidableEdge.points[0])
+            < MINSNAPATENDDISTANCE) { hitNormal = returnable.slideInstance.GetSlideNormalFromEnd(true); }
+        else if (Vector2.Distance(returnable.attachPoint, returnable.slideInstance.slidableEdge.points[returnable.slideInstance.slidableEdge.points.Length - 1])
+            < MINSNAPATENDDISTANCE) { hitNormal = returnable.slideInstance.GetSlideNormalFromEnd(false); }
         returnable.wasSuccessfull = true;
 
-        velocityOut = (velocityIn + (hitFound.normal * (velocityIn.magnitude * SLIDECOEFFICENT)));
+        velocityOut = (velocityIn + (hitNormal * (velocityIn.magnitude * SLIDECOEFFICENT)));
 
         return returnable;
+    }
+
+    private Vector2 GetSlideNormalFromEnd(bool isStartInstead)
+    {
+        int a = 0;
+        int b = 1;
+        if (!isStartInstead) { a = slidableEdge.points.Length - 1; b = a - 1; }
+        Vector2 vectorBetweenSlidePoints = transform.TransformPoint(slidableEdge.points[a]) - transform.TransformPoint(slidableEdge.points[b]);
+        Vector2 normalBetweenSlidePoints = Vector2.Perpendicular(vectorBetweenSlidePoints);
+        return normalBetweenSlidePoints;
     }
 
     /* Get Nearest Point In Spline
