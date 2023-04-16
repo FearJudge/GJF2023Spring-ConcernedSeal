@@ -80,9 +80,11 @@ public class MenuController : MonoBehaviour
 
     public void ResetScene()
     {
+        LevelManager.tries++;
         GameObject changer = Instantiate(lc);
         string current = SceneManager.GetActiveScene().name;
         LevelChanger transitionscript = changer.GetComponent<LevelChanger>();
+        ScoreScript.RefreshScoreToPrevious();
         transitionscript.StartTransition(current, 0.1f);
     }
 
@@ -106,13 +108,16 @@ public class MenuController : MonoBehaviour
             transitionscript.StartTransition(LevelManager.CUSTOMLEVELSCENE, 0.1f);
         }
 
+        LevelManager.tries = 0;
         if (!LevelManager.isGoingThroughCustomData) { NextStandard(); }
         else { NextCustom(); }
     }
 
     public void StartStandardGame()
     {
+        LevelManager.tries = 0;
         LevelManager.currentLevelNum = 0;
+        ScoreScript.ResetScore();
         LevelManager.isGoingThroughCustomData = false;
         NextScene();
     }

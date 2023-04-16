@@ -15,7 +15,8 @@ public class SlideSection : MonoBehaviour
     const float TOOLOWDISTANCE = 0.07f;
     const float SLIDEFRICTIONNORMAL = 0.2f;
     const float SLIDEFRICTIONGRAVITYDEFYING = 3.4f;
-    const float MINSNAPATENDDISTANCE = 0.15f;
+    const float MINSNAPATENDDISTANCE = 0.56f;
+    const float MAXVELOCITY = 100f;
 
     EdgeCollider2D slidableEdge;
     public struct SlideSnapData
@@ -188,7 +189,7 @@ public class SlideSection : MonoBehaviour
                 if (velocityMagnitude - distDelta < 0f) { currentPos = Vector2.MoveTowards(currentPos, transform.TransformPoint(slidableEdge.points[i]), velocityMagnitude); breaking = true; }
                 i++;
             }
-            if (Vector2.Distance(currentPos, transform.TransformPoint(slidableEdge.points[slidableEdge.points.Length - 1])) <= RELEASEDIST) { Debug.Log("Reached Pos End"); returnPackage.shouldRelease = true; }
+            if (Vector2.Distance(currentPos, transform.TransformPoint(slidableEdge.points[slidableEdge.points.Length - 1])) <= RELEASEDIST) { returnPackage.shouldRelease = true; }
         }
         else if (moveDirection == -1)
         {
@@ -199,7 +200,7 @@ public class SlideSection : MonoBehaviour
                 if (velocityMagnitude - distDelta < 0f) { currentPos = Vector2.MoveTowards(currentPos, transform.TransformPoint(slidableEdge.points[i]), velocityMagnitude); breaking = true; }
                 i--;
             }
-            if (Vector2.Distance(currentPos, transform.TransformPoint(slidableEdge.points[0])) <= RELEASEDIST) { Debug.Log("Reached Neg End"); returnPackage.shouldRelease = true; }
+            if (Vector2.Distance(currentPos, transform.TransformPoint(slidableEdge.points[0])) <= RELEASEDIST) { returnPackage.shouldRelease = true; }
         }
 
         returnPackage.travelingDirection = moveDirection;
@@ -209,7 +210,7 @@ public class SlideSection : MonoBehaviour
         velocityMagnitude -= (currentPos.y - currentFeetPos.y) * 1.6f;
         if ((moveDirection > 0 ? (returnPackage.newNormal.y < 0f) : (returnPackage.newNormal.y > 0f)))
         { velocityMagnitude -= SLIDEFRICTIONGRAVITYDEFYING * Time.deltaTime; } else { velocityMagnitude -= SLIDEFRICTIONNORMAL * Time.deltaTime; }
-        velocityMagnitude = Mathf.Clamp(velocityMagnitude, 0f, 500f);
+        velocityMagnitude = Mathf.Clamp(velocityMagnitude, 0f, MAXVELOCITY);
         if ((moveDirection > 0 ? (returnPackage.newNormal.y < 0f) : (returnPackage.newNormal.y > 0f))
             && velocityMagnitude < MINGRAVITYDEFYINGVELOCITY) { returnPackage.shouldDrop = true; }
         returnPackage.newVelocity = (currentPos - currentFeetPos).normalized * (velocityMagnitude);

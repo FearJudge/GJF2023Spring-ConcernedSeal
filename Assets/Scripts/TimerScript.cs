@@ -6,12 +6,13 @@ public class TimerScript : MonoBehaviour
 {
     public AnimatedCounterScript acs;
     public int gameTime = 0;
+    public static float gameTimeInSeconds = 0f;
     float gameTimeSpentBeforeStart = 0f;
 
     public float frequency = 0.05f;
 
     // Start is called before the first frame update
-    void Start()
+    void Awake()
     {
         acs.ChangeValueWithoutAnimations(gameTime, false);
         LevelLoader.LevelCanStart += BeginTimer;
@@ -26,7 +27,8 @@ public class TimerScript : MonoBehaviour
 
     void IncreaseTime()
     {
-        acs.Value = Mathf.RoundToInt((Time.timeSinceLevelLoad - gameTimeSpentBeforeStart) * 1000f);
+        acs.Value = Mathf.Clamp(Mathf.RoundToInt((Time.timeSinceLevelLoad - gameTimeSpentBeforeStart - 2f) * 1000f), 0, 9999999);
+        gameTimeInSeconds = acs.Value / 1000f;
     }
 
     public void BeginTimer()

@@ -118,7 +118,6 @@ public class PlayerAnimator : MonoBehaviour
     public void SnowPuff()
     {
         float impact = controller.playerPhysics.velocity.magnitude * 0.12f;
-        Debug.Log(impact);
         snowParticlesMain.startSpeedMultiplier = impact;
         snowParticlesMain.startLifetimeMultiplier = impact;
         snowParticles.Play();

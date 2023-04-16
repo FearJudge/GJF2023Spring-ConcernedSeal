@@ -27,9 +27,15 @@ public class ProgressionScript : MonoBehaviour
         FinishLine.PlayerProgressChanged -= ChangePlayerProgress;
     }
 
+    private void OnDisable()
+    {
+        FinishLine.PlayerProgressChanged -= ChangePlayerProgress;
+    }
+
     void ChangePlayerProgress(float val)
     {
         targetValue = val;
+        if (gameObject.activeSelf == false || playerProgressionSlider.enabled == false) { return; }
         if (targetValue == playerProgressionSlider.value) { return; }
         StartCoroutine(LerpToTargetValue(playerProgressionSlider));
     }
@@ -38,7 +44,7 @@ public class ProgressionScript : MonoBehaviour
     {
         if (lockedCoroutine) { yield break; }
         lockedCoroutine = true;
-        while (toTrack.value != targetValue)
+        while (toTrack.value != targetValue && gameObject != null)
         {
             if (Mathf.Abs(toTrack.value - targetValue) < MINIMUMVALUECHANGE) { toTrack.value = targetValue; }
             else {
@@ -47,6 +53,7 @@ public class ProgressionScript : MonoBehaviour
                 else if (Mathf.Abs(toTrack.value - targetValue) > SPEEDUPVALUEDIFFERENCE) { valueChange = VALUECHANGESPEEDMULTBIG; }
                 toTrack.value += ((toTrack.value - targetValue) > 0f) ? -valueChange * Time.deltaTime : valueChange * Time.deltaTime; }
             yield return null;
+            if (toTrack == null) { yield break; }
         }
         lockedCoroutine = false;
     }

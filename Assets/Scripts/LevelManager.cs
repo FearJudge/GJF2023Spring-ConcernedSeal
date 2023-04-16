@@ -9,6 +9,7 @@ public static class LevelManager
     const int LEVELNUMBEROFDIGITS = 2;
     public const string CUSTOMLEVELSCENE = "CustomStage";
 
+    public static int tries = 0;
     public static bool isGoingThroughCustomData = false;
     public static int currentLevelNum = 0;
     public static List<string> customLevelDataList = new List<string>();

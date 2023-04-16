@@ -34,7 +34,7 @@ public class WaveGlacier : MonoBehaviour
     {
         yield return new WaitForSeconds(countDownToStart);
         if (showToPlayer) { CameraTracker.trackableOverride = startingIceberg.transform; LevelLoader.pausedPlayer = true; }
-        startingIceberg.BreakMe(waveDirection, waveMagnitude);
+        startingIceberg.BreakMe(waveDirection, 4f);
         yield return new WaitForSeconds(startingIceberg.TimeUntilSinking());
 
         GameObject wave = Instantiate(wavePrefab, spawnPosition.position, spawnPosition.rotation);

@@ -6,6 +6,8 @@ using UnityEngine.U2D;
 [RequireComponent(typeof(BoxCollider2D))]
 public class FragileIcePlatform : MonoBehaviour
 {
+    const float DAMPENING = 5f;
+
     public bool breakOnContact = false;
     public Rigidbody2D mainParent;
     public SpriteShapeController platformEdges;
@@ -66,17 +68,18 @@ public class FragileIcePlatform : MonoBehaviour
         iceBergBG.spriteShape = crackedIceProfile;
     }
 
-    public void BreakMe(Vector2 direction, float magnitude = 5f)
+    public void BreakMe(Vector2 direction, float magnitude = 1f)
     {
-        StartCoroutine(Sinking());
+        float sinkForce = (direction.x > 0 ? 1f : -1f) * magnitude / DAMPENING;
+        StartCoroutine(Sinking(sinkForce));
     }
 
-    IEnumerator Sinking()
+    IEnumerator Sinking(float magnitudeDirection)
     {
         if (sinkingBehaviour.isSinking) { yield break; }
         sinkingBehaviour.isSinking = true;
         float timer = 0f;
-        float xNudge = sinkingBehaviour.initialWaveStrength;
+        float xNudge = sinkingBehaviour.initialWaveStrength * magnitudeDirection;
         SoundManager.PlaySound("FragileIce", transform.position + new Vector3(0f, 0f, Camera.main.transform.position.z));
         while (mainParent.transform.position.y >= sinkingBehaviour.destroyWhenReachedDepthsOf)
         {
@@ -84,12 +87,12 @@ public class FragileIcePlatform : MonoBehaviour
             yield return null; // One Frame
             if (timer >= sinkingBehaviour.hangOnTime)
             {
-                mainParent.transform.RotateAround(transform.TransformPoint(fragileIceTrigger.offset), transform.forward, sinkingBehaviour.sinkingRotationAngle * Time.deltaTime);
+                mainParent.transform.RotateAround(transform.TransformPoint(fragileIceTrigger.offset), transform.forward, -sinkingBehaviour.sinkingRotationAngle * Time.deltaTime);
                 mainParent.transform.position += new Vector3(xNudge, -sinkingBehaviour.sinkingSpeedAfterHang, 0f) * Time.deltaTime;
             }
             else
             {
-                mainParent.transform.RotateAround(transform.TransformPoint(fragileIceTrigger.offset), transform.forward, sinkingBehaviour.initialWaveRotationAngle * Time.deltaTime);
+                mainParent.transform.RotateAround(transform.TransformPoint(fragileIceTrigger.offset), transform.forward, -sinkingBehaviour.initialWaveRotationAngle * Time.deltaTime);
                 mainParent.transform.position += new Vector3(xNudge, -sinkingBehaviour.sinkingSpeedInitial, 0f) * Time.deltaTime;
             }
             xNudge = Mathf.Clamp(xNudge - Time.deltaTime, 0f, 20f);

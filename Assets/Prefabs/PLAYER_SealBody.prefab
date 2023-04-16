@@ -26,8 +26,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 707481965}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: -0.1736005, z: 0}
-  m_LocalScale: {x: 1.6666665, y: 1.6666665, z: 1.6666665}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 5508479379157698069}
@@ -667,7 +667,7 @@ ParticleSystem:
     boxThickness: {x: 0, y: 0, z: 0}
     radiusThickness: 1
     donutRadius: 0.2
-    m_Position: {x: 0, y: 0, z: 0}
+    m_Position: {x: 0, y: -0.51, z: 0}
     m_Rotation: {x: 0, y: 0, z: 0}
     m_Scale: {x: 1, y: 1, z: 1}
     placementMode: 0
@@ -9841,6 +9841,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 52cce7db73df18e45a398bd16ca85bd0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  mix: {fileID: 24100000, guid: e0b6b7ec3a7dd4e4c8037ea54841a486, type: 2}
+  sfxMix: {fileID: 1380113346934059412, guid: e0b6b7ec3a7dd4e4c8037ea54841a486, type: 2}
   allSounds:
   - soundType: Slide
     sounds:
@@ -9887,6 +9889,18 @@ MonoBehaviour:
     - {fileID: 8300000, guid: 7fd69a104d173434e986f800101251d9, type: 3}
     - {fileID: 8300000, guid: dc7e6e4a1edeec945a40e09089e15f0d, type: 3}
     - {fileID: 8300000, guid: 695a36aff05ed1442955ea41a42339e7, type: 3}
+    isLooping: 0
+  - soundType: BubbleSmall
+    sounds:
+    - {fileID: 8300000, guid: e34b0bbd5a6107f4485ae61b07620843, type: 3}
+    isLooping: 0
+  - soundType: BubbleBig
+    sounds:
+    - {fileID: 8300000, guid: 026e4fb1c1c22b04ba49cace8c5ee763, type: 3}
+    isLooping: 0
+  - soundType: Finish
+    sounds:
+    - {fileID: 8300000, guid: 4e654b8ace7c55b42b934fd7cba62157, type: 3}
     isLooping: 0
 --- !u!1 &5508479378010441435
 GameObject:
@@ -9993,10 +10007,11 @@ MonoBehaviour:
   playerPhysics: {fileID: 0}
   storedSlide: {fileID: 0}
   playerButtons:
-    btnForward: 100
-    btnBackwards: 97
-    btnJump: 119
-    btnCrouch: 115
+    btnHorizontalControl: Horizontal
+    btnVerticalControl: Vertical
+    btnPauseMenu: Cancel
+    heldYMinus: 0
+    heldYPlus: 0
   playerVariables:
     playerSpeed: 357
     playerSpeedAir: 177
@@ -10271,7 +10286,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 500
   m_Sprite: {fileID: 21300000, guid: 4ccea17b52e80d242b58a74bde5c2297, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0

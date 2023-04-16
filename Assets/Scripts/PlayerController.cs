@@ -19,12 +19,17 @@ public class PlayerController : MonoBehaviour
     public static PlayerEvent HaveJumpedFromSlide;
     public static PlayerEvent HaveFinishedLevel;
     public static PlayerEvent HaveReachedHighVelocityGround;
+    public static PlayerEvent HaveMovedToGoal;
+
+    public static float slidingTime = 0f;
+    public static int hitsToWater = 0;
 
     [HideInInspector] public Rigidbody2D playerPhysics;
     CapsuleCollider2D playerCollision;
     CircleCollider2D feetCollider;
     [HideInInspector] public SlideSection storedSlide;
     private SlideSection spamPrevention;
+
     [SerializeField] private PlayerControls playerButtons;
     [SerializeField] private PlayerStats playerVariables;
 
@@ -33,6 +38,7 @@ public class PlayerController : MonoBehaviour
     {
         public string btnHorizontalControl = "Horizontal";
         public string btnVerticalControl = "Vertical";
+        public string btnPauseMenu = "Cancel";
         public bool heldYMinus = false;
         public bool heldYPlus = false;
     }
@@ -79,6 +85,8 @@ public class PlayerController : MonoBehaviour
      */
     void Start()
     {
+        slidingTime = 0f;
+        hitsToWater = 0;
         submergedOxygen = playerVariables.startingOxygen;
         playerPhysics = GetComponent<Rigidbody2D>();
         playerCollision = GetComponent<CapsuleCollider2D>();
@@ -112,14 +120,16 @@ public class PlayerController : MonoBehaviour
 
     private void CheckPlayerInputs()
     {
-        float x = Input.GetAxisRaw("Horizontal");
-        float y = Input.GetAxisRaw("Vertical");
+        float x = Input.GetAxisRaw(playerButtons.btnHorizontalControl);
+        float y = Input.GetAxisRaw(playerButtons.btnVerticalControl);
         if (x != 0f) { PlayerMove(x); }
+        // Sliding
         if (!playerButtons.heldYMinus && y < 0 && storedSlide != null) { PlayerSlideStop(); }
         else if (y < 0 && storedSlide == null) { PlayerSlide();  }
         else if (storedSlide != null) { PlayerSlide(); }
         if (y >= 0) { playerButtons.heldYMinus = false; }
         else { playerButtons.heldYMinus = true; }
+        // Jump and Jump Off
         if (y > 0 && !playerButtons.heldYPlus)
         {
             bool ignore = PlayerSlideStop(); if (ignore)
@@ -128,6 +138,8 @@ public class PlayerController : MonoBehaviour
             playerButtons.heldYPlus = true;
         }
         else if (y <= 0) { playerButtons.heldYPlus = false; }
+        // Pausing
+        if (Input.GetButtonDown(playerButtons.btnPauseMenu)) { LevelLoader.PlayerIndicatesPauseChange(!LevelLoader.pausedPlayer); }
     }
 
     /* Player Move
@@ -164,6 +176,7 @@ public class PlayerController : MonoBehaviour
 
         void ProgressExistingSlide()
         {
+            slidingTime += Time.deltaTime;
             playerPhysics.isKinematic = true;
             playerPhysics.velocity = Vector2.zero;
             SlideSection.SlideMoveData smd = storedSlide.MoveAlongSlide(
@@ -223,13 +236,16 @@ public class PlayerController : MonoBehaviour
 
     IEnumerator PlayerGrabbleTo(Transform to)
     {
+        Vector3 offsetToFloat = new Vector3(0f, 0.25f, 0f);
         yield return new WaitForSeconds(TIMESTOPDURATION);
-        while (transform.position != to.position)
+        while (transform.position != to.position + offsetToFloat)
         {
-            transform.position = Vector3.MoveTowards(transform.position, to.position, Time.deltaTime * playerVariables.grabbleSpeed);
-            if (Vector3.Distance(transform.position, to.position) < 0.1f) { transform.position = to.position; }
+            transform.position = Vector3.MoveTowards(transform.position, to.position + offsetToFloat, Time.deltaTime * playerVariables.grabbleSpeed);
+            if (Vector3.Distance(transform.position, to.position) < 0.1f) { transform.position = to.position + offsetToFloat; }
             yield return null;
         }
+        transform.parent = to;
+        HaveMovedToGoal?.Invoke();
     }
 
     void StickToMovingPlatforms()
@@ -280,6 +296,8 @@ public class PlayerController : MonoBehaviour
 
     void GotMoist()
     {
+        if (finished) { return; }
+        hitsToWater++;
         wetPenaltyTimer = playerVariables.wetPenaltyMinDuration;
         wetPenaltyMultiplier = playerVariables.wetPenaltyForceMultiplier;
     }

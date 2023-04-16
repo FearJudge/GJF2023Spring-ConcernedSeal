@@ -12,15 +12,25 @@ public class FinishLine : MonoBehaviour
 
     public static float progressTowardsGoal = 0f;
     public static float waveTowardsGoal = 0f;
+    public static float currentLevelPar = 0f;
+
+    public float levelPar = 25f;
 
     public float trackInterval = 0.5f;
     public Transform ring;
     bool finished = false;
+    public ParticleSystem particleSplash;
 
     private void Start()
     {
+        currentLevelPar = levelPar;
         StartCoroutine(TrackPlayerProgress());
         if (ring == null) { transform.GetChild(0); }
+    }
+
+    private void OnDestroy()
+    {
+        PlayerController.HaveMovedToGoal -= Splash;
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
@@ -31,6 +41,7 @@ public class FinishLine : MonoBehaviour
         LevelLoader.pausedPlayer = true;
         FinishedPositionRing?.Invoke(ring);
         finished = true;
+        PlayerController.HaveMovedToGoal += Splash;
     }
 
     IEnumerator TrackPlayerProgress()
@@ -46,5 +57,11 @@ public class FinishLine : MonoBehaviour
             progressTowardsGoal = (totalDistance - Mathf.Abs(endX - player.transform.position.x)) / totalDistance;
             PlayerProgressChanged?.Invoke(progressTowardsGoal);
         }
+    }
+
+    void Splash()
+    {
+        particleSplash.Play();
+        SoundManager.PlaySound("Splash", 0.9f);
     }
 }

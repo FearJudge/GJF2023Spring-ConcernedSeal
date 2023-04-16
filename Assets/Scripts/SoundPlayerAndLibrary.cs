@@ -1,10 +1,13 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Audio;
 
 [RequireComponent(typeof(AudioSource))]
 public class SoundPlayerAndLibrary : MonoBehaviour
 {
+    public AudioMixer mix;
+    public AudioMixerGroup sfxMix;
     public List<SoundManager.AudioGroup> allSounds = new List<SoundManager.AudioGroup>();
     public static SoundPlayerAndLibrary instance;
     public static AudioSource TwoDSound;
@@ -14,6 +17,7 @@ public class SoundPlayerAndLibrary : MonoBehaviour
     {
         instance = this;
         TwoDSound = GetComponent<AudioSource>();
+        SoundManager.mixSfx = sfxMix;
 
         if (allSounds.Count <= SoundManager.allSounds.Count) { return; }
         for (int a = 0; a < allSounds.Count; a++)
@@ -41,11 +45,11 @@ public class SoundPlayerAndLibrary : MonoBehaviour
         if (subscribe) { PlayerController.HaveHitWater += PlayWaterSFX; } else { PlayerController.HaveLandedOnSnow -= PlayWaterSFX; }
         if (subscribe) { PlayerController.HaveBegunSliding += PlayIceDingSFX; } else { PlayerController.HaveLandedOnSnow -= PlayIceDingSFX; }
         if (subscribe) { PlayerController.HaveJumped += PlayJumpSFX; } else { PlayerController.HaveLandedOnSnow -= PlayJumpSFX; }
+        if (subscribe) { PlayerController.HaveFinishedLevel += PlayFinishSFX; } else { PlayerController.HaveFinishedLevel -= PlayFinishSFX; }
     }
 
     void PlaySnowSFX()
     {
-        Debug.Log("HitSnow!");
         SoundManager.PlaySound("SnowHit");
     }
 
@@ -63,6 +67,11 @@ public class SoundPlayerAndLibrary : MonoBehaviour
     {
         SoundManager.PlaySound("Jump");
     }
+
+    void PlayFinishSFX()
+    {
+        SoundManager.PlaySound("Finish");
+    }
 }
 
 public static class SoundManager
@@ -75,6 +84,7 @@ public static class SoundManager
         public bool isLooping;
     }
     public static List<AudioGroup> allSounds = new List<AudioGroup>();
+    public static AudioMixerGroup mixSfx;
 
     static AudioClip GetClipFromGroup(string soundType, out bool isLooping)
     {
@@ -85,9 +95,11 @@ public static class SoundManager
         return group.sounds[Random.Range(0, group.sounds.Length)];
     }
 
-    public static void PlaySound(string soundType, Vector3 pos, float volMult = 0.75f)
+    public static AudioSource PlaySound(string soundType, Vector3 pos, float volMult = 0.75f)
     {
-        AudioSource.PlayClipAtPoint(GetClipFromGroup(soundType, out bool loop), pos, volMult);
+        mixSfx.audioMixer.GetFloat("SFX", out float volMix);
+        volMix = ((80f - volMix) / 80f);
+        return PlaySFX(GetClipFromGroup(soundType, out bool loop), pos, volMult * volMix, 1f);
     }
 
     public static AudioSource PlaySound(string soundType, float volMult = 0.75f)
@@ -103,6 +115,25 @@ public static class SoundManager
         source.loop = loop;
         source.pitch = pitch;
         source.volume = volume;
+        source.outputAudioMixerGroup = mixSfx;
+        source.clip = clip;
+        source.Play();
+        SoundPlayerAndLibrary.instance.StartCoroutine(PlayMe(source, audio));
+        return source;
+    }
+
+    public static AudioSource PlaySFX(AudioClip clip, Vector3 pos, float volume, float pitch, bool loop = false)
+    {
+        GameObject audio = new GameObject("SoundEffect", typeof(AudioSource));
+        audio.transform.position = pos;
+        var source = audio.GetComponent<AudioSource>();
+        SoundPlayerAndLibrary.currentSounds.Add(audio);
+        source.spatialBlend = 1f;
+        source.spatialize = true;
+        source.loop = loop;
+        source.pitch = pitch;
+        source.volume = volume;
+        source.outputAudioMixerGroup = mixSfx;
         source.clip = clip;
         source.Play();
         SoundPlayerAndLibrary.instance.StartCoroutine(PlayMe(source, audio));
@@ -118,30 +149,5 @@ public static class SoundManager
         SoundPlayerAndLibrary.currentSounds.Remove(obj);
         Object.Destroy(obj);
         yield return null;
-    }
-
-    static IEnumerator FadeSwap(AudioSource src, float timeOut, float timeIn, AudioClip newClip = null, float newVolumeIn = 0f)
-    {
-        float volumeStep = src.volume / 20f;
-        if (src.isPlaying && timeOut > 0f)
-        {
-            for (int a = 0; a < 20; a++)
-            {
-                src.volume -= volumeStep;
-                yield return new WaitForSeconds(timeOut / 20f);
-            }
-            src.Stop();
-        }
-        float volumeStepIn = newVolumeIn / 20f;
-        if (volumeStepIn < 0 || volumeStepIn > 0.05f) { volumeStepIn = volumeStep; if (volumeStepIn < 0 || volumeStepIn > 0.05f) { volumeStep = 0.05f; } }
-        if (newClip == null || timeIn == 0f) { yield break; }
-        src.clip = newClip;
-        src.Play();
-        src.volume = 0f;
-        for (int a = 0; a < 20; a++)
-        {
-            src.volume += volumeStepIn;
-            yield return new WaitForSeconds(timeIn / 20f);
-        }
     }
 }

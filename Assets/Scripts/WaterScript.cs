@@ -33,13 +33,7 @@ public class WaterScript : MonoBehaviour, WaterRiseScript.IWaterRisable
         Rigidbody2D hitActor = collision.gameObject.GetComponent<Rigidbody2D>();
         if (hitActor != null && prefabOfWaterSplash != null)
         {
-            ContactPoint2D[] collisions = new ContactPoint2D[20];
-            int a = collision.GetContacts(collisions);
-            Vector3 pos = collision.gameObject.transform.position;
-            for (int i = 0; i < a; i++)
-            {
-                if (collisions[i].otherCollider == ownCollider) { pos = collisions[i].point; }
-            }
+            Vector3 pos = collision.ClosestPoint(transform.position);
             GameObject settingsForPrefab = Instantiate(prefabOfWaterSplash, pos, Quaternion.identity);
             ParticleSystem psForPrefab = settingsForPrefab.GetComponent<ParticleSystem>();
             ParticleSystem.MainModule psmmForPrefab = psForPrefab.main;
@@ -48,7 +42,7 @@ public class WaterScript : MonoBehaviour, WaterRiseScript.IWaterRisable
             psmmForPrefab.startLifetimeMultiplier = Mathf.Clamp(hitImpact, 0.5f, 2f);
             psForPrefab.Play();
         }
-        if (collision.TryGetComponent<PlayerController>(out PlayerController pc))
+        if (collision.gameObject.TryGetComponent<PlayerController>(out PlayerController pc))
         {
             if (instantDrown) { pc.Drowned(true); }
             pc.submerged = true;

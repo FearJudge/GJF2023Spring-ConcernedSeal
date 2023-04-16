@@ -30,6 +30,13 @@ public class AutoPlatformBG : MonoBehaviour
     // Automatically generate all slide section's iceberg texture underneath the slide section.
     void GenerateBackground()
     {
+        void SetTangentOfSplinePoint(int index)
+        {
+            backgroundIceBerg.spline.SetTangentMode(index, platformShape.spline.GetTangentMode(index));
+            backgroundIceBerg.spline.SetLeftTangent(index, platformShape.spline.GetLeftTangent(index));
+            backgroundIceBerg.spline.SetRightTangent(index, platformShape.spline.GetRightTangent(index));
+        }
+
         Vector3 startPoint = platformShape.spline.GetPosition(0);
         Vector3 endPoint = platformShape.spline.GetPosition(platformShape.spline.GetPointCount() - 1);
 
@@ -37,13 +44,13 @@ public class AutoPlatformBG : MonoBehaviour
         backgroundIceBerg.spline.SetPosition(backgroundSettings.pointsToStretch[1], endPoint);
         backgroundIceBerg.spline.SetPosition(backgroundSettings.pointsToStretch[3], startPoint + backgroundSettings.leftBottomOffset);
         backgroundIceBerg.spline.SetPosition(backgroundSettings.pointsToStretch[2], endPoint + backgroundSettings.rightBottomOffset);
+        SetTangentOfSplinePoint(0);
         for (int a = 1; a < platformShape.spline.GetPointCount() - 1; a++)
         {
             backgroundIceBerg.spline.InsertPointAt(a, platformShape.spline.GetPosition(a));
-            backgroundIceBerg.spline.SetTangentMode(a, platformShape.spline.GetTangentMode(a));
-            backgroundIceBerg.spline.SetLeftTangent(a, platformShape.spline.GetLeftTangent(a));
-            backgroundIceBerg.spline.SetRightTangent(a, platformShape.spline.GetRightTangent(a));
+            SetTangentOfSplinePoint(a);
         }
+        SetTangentOfSplinePoint(platformShape.spline.GetPointCount() - 1);
 
         // Ensure that the camera actually has the relevant information to draw the
         // reshaped sprite when it enters the screen. Add a bit extra for safety.
