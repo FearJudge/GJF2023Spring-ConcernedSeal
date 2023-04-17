@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+// Modified from an older project
+// https://fearjudge.itch.io/chaos-conjecture
 public class LevelChanger : MonoBehaviour
 {
     [SerializeField] private Animator myAnim;
     public float finalDur = 2f;
 
-    // Comments
     void Start()
     {
         DontDestroyOnLoad(this);

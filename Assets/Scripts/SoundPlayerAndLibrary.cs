@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Audio;
 
+/* 
+ * A local audio player that sets up Global Audio.
+ */
 [RequireComponent(typeof(AudioSource))]
 public class SoundPlayerAndLibrary : MonoBehaviour
 {
@@ -107,7 +110,7 @@ public static class SoundManager
         return PlaySFX(GetClipFromGroup(soundType, out bool loop), volMult, 1f, loop);
     }
 
-    public static AudioSource PlaySFX(AudioClip clip, float volume, float pitch, bool loop = false)
+    static AudioSource PlaySFX(AudioClip clip, float volume, float pitch, bool loop = false)
     {
         GameObject audio = new GameObject("SoundEffect", typeof(AudioSource));
         var source = audio.GetComponent<AudioSource>();

@@ -4,6 +4,9 @@ using UnityEngine;
 using UnityEngine.Audio;
 using UnityEngine.UI;
 
+/* 
+ * A class that handles player made settings largely.
+ */
 public class GameOptions : MonoBehaviour
 {
     public AudioMixer mixChannelSound;
@@ -40,5 +43,10 @@ public class GameOptions : MonoBehaviour
         sfxSlider.value = val;
         mixChannelSound.GetFloat("BGM", out float valbg);
         volSlider.value = valbg;
+    }
+
+    public void ToggleFullscreen()
+    {
+        Screen.fullScreen = !Screen.fullScreen;
     }
 }

@@ -2,6 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/* 
+ * A class that moves the camera based on a tracking target.
+ * The target can be overwritten temporarily.
+ */
 public class CameraTracker : MonoBehaviour
 {
     public enum TrackingTarget

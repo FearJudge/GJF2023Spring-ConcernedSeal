@@ -3,6 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+/* 
+ * A class that handles a simple progression bar at the bottom of the screen.
+ * Is a real pain in the ass.
+ */
 public class ProgressionScript : MonoBehaviour
 {
     const float MINIMUMVALUECHANGE = 0.001f;

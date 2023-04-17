@@ -2,6 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/* 
+ * A class that handles level timer.
+ * Uses and Animated Counter script for display.
+ */
 public class TimerScript : MonoBehaviour
 {
     public AnimatedCounterScript acs;

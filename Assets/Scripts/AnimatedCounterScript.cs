@@ -4,11 +4,17 @@ using UnityEngine;
 
 // Imported from an older project.
 // https://fearjudge.itch.io/chaos-conjecture
+
+/* 
+ * A class that handles animated digit counters.
+ * Takes in a value (long Value), and sets numbers it controls to
+ * match the counters Value by increasing or decreasing them.
+ */
 public class AnimatedCounterScript : MonoBehaviour
 {
     long displayval = 0;
     long val = 0;
-    bool soundPlayed = false;
+    // bool soundPlayed = false; // Used in a now removed tick sound in the previous project.
     public string normalIncrementTrigger = "incNormal";
     public string normalDecrementTrigger = "decNormal";
     public string rolloverIncrementTrigger = "incRollover";
@@ -172,7 +178,7 @@ public class AnimatedCounterScript : MonoBehaviour
                 DisplayDown();
             }
             yield return new WaitForSecondsRealtime(rollingCounterSpeed);
-            soundPlayed = false;
+            // soundPlayed = false;
         }
         animating = false;
     }

@@ -2,6 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/* 
+ * A class that allows an audio source to modify it's volume based on proximity.
+ * Can also make the proximity ignore the x or y axis.
+ */
 public class DynamicSoundPlayer : MonoBehaviour
 {
     public string soundToPlay;

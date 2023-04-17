@@ -2,6 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/* 
+ * A class that handles the stage finish.
+ * Notifies relevant systems if the player crosses this objects trigger.
+ */
 public class FinishLine : MonoBehaviour
 {
     public delegate void ProgressChangedNotifier(float value);

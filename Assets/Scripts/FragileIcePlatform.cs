@@ -3,6 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.U2D;
 
+/* 
+ * A component that enables a platform to break if hit by an icewave.
+ * Can be tweaked so that the platform falls just how you want it to.
+ */
 [RequireComponent(typeof(BoxCollider2D))]
 public class FragileIcePlatform : MonoBehaviour
 {
@@ -49,6 +53,11 @@ public class FragileIcePlatform : MonoBehaviour
         }
     }
 
+    /* Create Trigger Edges
+     *  Arguments: -
+     *  
+     *  Sets the fragile platforms collision box.
+     */
     void CreateTriggerEdges()
     {
         Vector3 startPos = platformEdges.spline.GetPosition(0);
@@ -63,17 +72,31 @@ public class FragileIcePlatform : MonoBehaviour
         fragileIceTrigger.size = new Vector2(xSize, ySize);
     }
 
+    /* Set Background Profile
+     *  Arguments: -
+     *  
+     *  Sets the sprite shape profile, makes the cracked ice platforms a little different.
+     */
     void SetBackgroundProfile()
     {
         iceBergBG.spriteShape = crackedIceProfile;
     }
 
+    /* Break Me
+     *  Arguments:
+     *  direction : The movement of whatever brakes the platform (typically waterwave)
+     *  magnitude : The magnitude of the hit. Changes the speed with which to nudge the platform.
+     *  
+     *  Starts the sinking process, where the platform gets nudged, then starts sinking.
+     */
     public void BreakMe(Vector2 direction, float magnitude = 1f)
     {
         float sinkForce = (direction.x > 0 ? 1f : -1f) * magnitude / DAMPENING;
         StartCoroutine(Sinking(sinkForce));
     }
 
+    // Sinking is a coroutine used for Break Me.
+    // magnitudeDirection : the magnitude for nuding and direction to nudge (positive is towards right)
     IEnumerator Sinking(float magnitudeDirection)
     {
         if (sinkingBehaviour.isSinking) { yield break; }
@@ -100,6 +123,12 @@ public class FragileIcePlatform : MonoBehaviour
         Destroy(mainParent);
     }
 
+    /* Time Until Sinking
+     *  Arguments: -
+     *  
+     *  Returns the time the platform can hang.
+     *  Returns: FLOAT, Time the platform was set to hang, in seconds.
+     */
     public float TimeUntilSinking()
     {
         return sinkingBehaviour.hangOnTime;

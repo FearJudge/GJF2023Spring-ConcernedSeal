@@ -2,6 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/* 
+ * Handles player animations, calling of player sounds and sprite position.
+ */
 public class PlayerAnimator : MonoBehaviour
 {
     public PlayerController controller;
@@ -46,6 +49,12 @@ public class PlayerAnimator : MonoBehaviour
         UpdateAnimatorState();
     }
 
+    /* Check For Player Direction
+     *  Arguments: -
+     *  
+     *  Sets players facing dependent on their current velocity.
+     *  Two modes, based on sliding or normal movement.
+     */
     void CheckForPlayerDirection()
     {
         void VelocityBased()
@@ -64,6 +73,12 @@ public class PlayerAnimator : MonoBehaviour
         else { SlideBased(); }
     }
 
+    /* Check For Stored Slide
+     *  Arguments: -
+     *  
+     *  If the player is sliding, rotates the sprite to match the angle the player is riding at.
+     *  Also handles effects related to sliding, like particles and calling sound cues.
+     */
     void CheckForStoredSlide()
     {
         if (controller.storedSlide == null) {
@@ -92,6 +107,12 @@ public class PlayerAnimator : MonoBehaviour
         } 
     }
 
+    /* Update Animator State
+     *  Arguments: -
+     *  
+     *  Updates the animator based on the players current actions.
+     *  Animator handles which sprite of the player to show.
+     */
     void UpdateAnimatorState()
     {
         bool isSliding = controller.storedSlide != null;
@@ -100,21 +121,41 @@ public class PlayerAnimator : MonoBehaviour
         else { animator.SetFloat("Movement", Mathf.Abs(controller.storedVelocity.x)); }
     }
 
+    /* Flip
+     *  Arguments: -
+     *  
+     *  Calls the player to do a long flip, for example after slides.
+     */
     public void Flip()
     {
         StartCoroutine(DoAFlip(flipTime));
     }
 
+    /* Quick Flip
+     *  Arguments: -
+     *  
+     *  Calls the player to do a quick flip, for example when jumping off from a slide manually.
+     */
     public void QuickFlip()
     {
         StartCoroutine(DoAFlip(flipTime / 3f));
     }
 
+    /* Got Wet
+     *  Arguments: -
+     *  
+     *  Lets the animator know the player hit water. Changes the sprite for a moment.
+     */
     public void GotWet()
     {
         animator.SetTrigger("Wet");
     }
 
+    /* Snow Puff
+     *  Arguments: -
+     *  
+     *  Player landed on snow, checks the impact and determines the particle systems strength accordingly.
+     */
     public void SnowPuff()
     {
         float impact = controller.playerPhysics.velocity.magnitude * 0.12f;
@@ -123,6 +164,9 @@ public class PlayerAnimator : MonoBehaviour
         snowParticles.Play();
     }
 
+    /* Do a Flip
+     *  Arguments: rotTime : Time in seconds the flip should last.
+     */
     IEnumerator DoAFlip(float rotTime = 2f)
     {
         if (flipInProgress) { yield break; }

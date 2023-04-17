@@ -5,6 +5,12 @@ using UnityEngine.Audio;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
+// Modified from an older project
+// https://fearjudge.itch.io/crimson-craze
+
+/* 
+* A system to control main menu screens and easily change scenes with transitions.
+*/
 public class MenuController : MonoBehaviour
 {
     const string mainmenu = "MainMenu";
@@ -72,12 +78,6 @@ public class MenuController : MonoBehaviour
         transitionscript.StartTransition(name, 0.1f);
     }
 
-    public void GoToGame()
-    {
-        GameObject changer = Instantiate(lc);
-        LevelChanger transitionscript = changer.GetComponent<LevelChanger>();
-    }
-
     public void ResetScene()
     {
         LevelManager.tries++;
@@ -93,7 +93,6 @@ public class MenuController : MonoBehaviour
         void NextStandard()
         {
             string next = LevelManager.GetNextStandardLevelName();
-            Debug.Log(SceneUtility.GetBuildIndexByScenePath(next));
             if (SceneUtility.GetBuildIndexByScenePath(next) == -1) { ReturnToMainMenu(); return; }
             GameObject changer = Instantiate(lc);
             LevelChanger transitionscript = changer.GetComponent<LevelChanger>();

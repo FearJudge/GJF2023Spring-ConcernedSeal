@@ -2,6 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/* 
+ * The starting wave generator.
+ */
 public class WaveGlacier : MonoBehaviour
 {
     public GameObject wavePrefab;

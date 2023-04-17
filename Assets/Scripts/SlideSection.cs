@@ -4,6 +4,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.U2D;
 
+
+/* 
+ * A class that handles slidable surfaces.
+ * Used for sliding rails.
+ */
 [RequireComponent(typeof(EdgeCollider2D))]
 public class SlideSection : MonoBehaviour
 {
@@ -93,6 +98,13 @@ public class SlideSection : MonoBehaviour
         return returnable;
     }
 
+    /* Get Slide Normal From End
+     *  Arguments:
+     *  isStartInstead (bool) - Gets the start points instead.
+     *  
+     *  Returns a normal from point 0 and 1 from positive or negative end.
+     *  This is to help with hitting the tip of a slide and getting an errant normal.
+     */
     private Vector2 GetSlideNormalFromEnd(bool isStartInstead)
     {
         int a = 0;
@@ -109,9 +121,9 @@ public class SlideSection : MonoBehaviour
      *  reference (Vector2) - The position which we want to find the closest to.
      *  spline (Vector2 Array) - The array from which the closest point will be chosen.
      *  transform To Reference (Transform) - The transform which owns the spline, to make sure the position matches globally, instead of locally.
+     *  startingIndex (integer) - If -1, goes through the entire slide. If given an index, only searches close by, to prevent loops from breaking this.
      *  
      *  Iterates through an array and finds the nearest point in an array, then returns the closest points index.
-     *  Cannot reliably cut-off when distances start increasing, as we cannot know the configuration of the spline.
      *  Returns:
      *  integer, index that is closest to reference.
      */
@@ -169,6 +181,18 @@ public class SlideSection : MonoBehaviour
         return 0;
     }
 
+    /* Move Along Slide
+     *  Arguments:
+     *  currentFeetPos (Vector2) - The position from which to check the next step from.
+     *  velocity (Vector2) - the velocity used to propel the player.
+     *  moveDirection (int) - if 1 or -1, lets us keep the direction of the slide. if 0 we will determine it manually.
+     *  startIndex (int) - where we are on the slide. Used to cull some of checks if we are already on it.
+     *  
+     *  Takes a slide instance and calculates where we should be on the next frame when given the data provided.
+     *  Returns:
+     *  SlideMoveData, a collection of data that lets the controller and animator set the player based on its contents.
+     *  Contains among other things: The position where to set the player, the normal of the slide section and the new velocity.
+     */
     public SlideMoveData MoveAlongSlide(Vector2 currentFeetPos, Vector2 velocity, int moveDirection, int startIndex = -1)
     {
         int i = GetNearestPointInSpline(currentFeetPos, slidableEdge.points, transform, startIndex);
@@ -219,6 +243,9 @@ public class SlideSection : MonoBehaviour
         return returnPackage;
     }
 
+    /* Stick To Slide
+     *  Deprecated method to determine if to stick to a slide.
+     */
     public static bool StickToSlide(Rigidbody2D rb, ContactFilter2D contactFilter, float snap = 4f)
     {
         SlideSnapData returnable = new SlideSnapData() { wasSuccessfull = false };

@@ -2,6 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/* 
+ * Handles player input and movement as well as abilities like sliding, drowning and jumping.
+ */
 public class PlayerController : MonoBehaviour
 {
     const float SLIDEOFFSETCONST = 0.05f;
@@ -23,6 +26,7 @@ public class PlayerController : MonoBehaviour
 
     public static float slidingTime = 0f;
     public static int hitsToWater = 0;
+    public static string startingInput;
 
     [HideInInspector] public Rigidbody2D playerPhysics;
     CapsuleCollider2D playerCollision;
@@ -37,10 +41,9 @@ public class PlayerController : MonoBehaviour
     class PlayerControls
     {
         public string btnHorizontalControl = "Horizontal";
-        public string btnVerticalControl = "Vertical";
+        public string btnSlide = "Slide";
+        public string btnJump = "Jump";
         public string btnPauseMenu = "Cancel";
-        public bool heldYMinus = false;
-        public bool heldYPlus = false;
     }
 
     [System.Serializable]
@@ -85,6 +88,7 @@ public class PlayerController : MonoBehaviour
      */
     void Start()
     {
+        startingInput = playerButtons.btnSlide;
         slidingTime = 0f;
         hitsToWater = 0;
         submergedOxygen = playerVariables.startingOxygen;
@@ -118,26 +122,26 @@ public class PlayerController : MonoBehaviour
         Drowned();
     }
 
+    /* Check Player Inputs
+     *  Arguments: -
+     *  
+     *  Reads Inputs and controls the player accordingly.
+     */
     private void CheckPlayerInputs()
     {
         float x = Input.GetAxisRaw(playerButtons.btnHorizontalControl);
-        float y = Input.GetAxisRaw(playerButtons.btnVerticalControl);
         if (x != 0f) { PlayerMove(x); }
         // Sliding
-        if (!playerButtons.heldYMinus && y < 0 && storedSlide != null) { PlayerSlideStop(); }
-        else if (y < 0 && storedSlide == null) { PlayerSlide();  }
+        if (Input.GetButtonDown(playerButtons.btnSlide) && storedSlide != null) { PlayerSlideStop(); }
+        else if (Input.GetButton(playerButtons.btnSlide) && storedSlide == null) { PlayerSlide();  }
         else if (storedSlide != null) { PlayerSlide(); }
-        if (y >= 0) { playerButtons.heldYMinus = false; }
-        else { playerButtons.heldYMinus = true; }
         // Jump and Jump Off
-        if (y > 0 && !playerButtons.heldYPlus)
+        if (Input.GetButtonDown(playerButtons.btnJump))
         {
             bool ignore = PlayerSlideStop(); if (ignore)
             { PlayerJumpOffSlide(storedNormal); }
             else { PlayerJump(); }
-            playerButtons.heldYPlus = true;
         }
-        else if (y <= 0) { playerButtons.heldYPlus = false; }
         // Pausing
         if (Input.GetButtonDown(playerButtons.btnPauseMenu)) { LevelLoader.PlayerIndicatesPauseChange(!LevelLoader.pausedPlayer); }
     }
@@ -146,7 +150,7 @@ public class PlayerController : MonoBehaviour
      *  Arguments: direction, multiplier for movement that determines wether to go
      *  right (positive) or left (negative).
      *  
-     *  Does not handle input directly.
+     *  Moves the player left or right
      */
     void PlayerMove(float direction)
     {
@@ -166,9 +170,10 @@ public class PlayerController : MonoBehaviour
     }
 
     /* Player Slide
-     *  Arguments: state, boolean that controls wether to slide or not.
+     *  Arguments: -
      *  
-     *  Does not handle input directly.
+     *  Tells the character to move forward in a slide or to find a new slide if
+     *  they are currently not on one
      */
     void PlayerSlide()
     {
@@ -193,6 +198,7 @@ public class PlayerController : MonoBehaviour
             if (smd.shouldDrop) { PlayerSlideStop(); }
             else if (smd.shouldRelease) { PlayerSlideStop(); PlayerJump(true); HaveReleasedFromSlide?.Invoke(); }
         }
+
 
         void FindNewSlide()
         {
@@ -225,6 +231,11 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    /* Player Halt and Grabble To
+     *  Arguments: to, the transform towards which to move and eventually parent to.
+     *  
+     *  Starts a sequence where the player quickly snaps towards chosen transform.
+     */
     public void PlayerHaltAndGrabbleTo(Transform to)
     {
         if (finished) { return; }
@@ -234,6 +245,7 @@ public class PlayerController : MonoBehaviour
         StartCoroutine(PlayerGrabbleTo(to));
     }
 
+    // Player Grabble To {Coroutine used in Player Halt and Grabble To}
     IEnumerator PlayerGrabbleTo(Transform to)
     {
         Vector3 offsetToFloat = new Vector3(0f, 0.25f, 0f);
@@ -248,6 +260,12 @@ public class PlayerController : MonoBehaviour
         HaveMovedToGoal?.Invoke();
     }
 
+    /* Stick to Moving Platforms
+     *  Arguments: -
+     *  
+     *  Keeps a reference to any solid platform it stands on. If the platform moves,
+     *  move the player accordingly.
+     */
     void StickToMovingPlatforms()
     {
         void ModifyPositionBasedOnUnderlyingPlatform(Vector3 newPlatformPos)
@@ -278,13 +296,27 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private void CheckCollisionToGround(out Collider2D[] colliders, out int a, bool allowTriggers = true)
+    /* Check Collisions To Ground
+     *  Arguments:
+     *  colliders (outward) : A set of colliders that the player is in contact with.
+     *  count (outward) : The amount of collisions.
+     *  allowTriggers : A switch that determines if non-collidable triggers should be counted as well.
+     *  
+     *  Checks overlaps in a dedicated feet collider and returns the results.
+     */
+    private void CheckCollisionToGround(out Collider2D[] colliders, out int count, bool allowTriggers = true)
     {
         colliders = new Collider2D[20];
-        a = feetCollider.OverlapCollider(new ContactFilter2D() { useTriggers = allowTriggers, useLayerMask = true, layerMask = layerGround }, colliders);
-        if (a > 0 && allowTriggers == false) { jumps = 1; }
+        count = feetCollider.OverlapCollider(new ContactFilter2D() { useTriggers = allowTriggers, useLayerMask = true, layerMask = layerGround }, colliders);
+        if (count > 0 && allowTriggers == false) { jumps = 1; }
     }
 
+    /* Drowned
+     *  Arguments: ignoreOxygen : If true, the player fail happens immediately.
+     *  
+     *  If the player is colliding with water for a set time, will fail the stage.
+     *  Method for handling the entire process.
+     */
     public void Drowned(bool ignoreOxygen = false)
     {
         if (submerged) { submergedOxygen -= Time.deltaTime; GotMoist(); }
@@ -294,6 +326,11 @@ public class PlayerController : MonoBehaviour
         LevelLoader.PlayerHasFailed();
     }
 
+    /* Got Moist
+     *  Arguments: -
+     *  
+     *  Penalizes your movement until you land (and a minimum time) if you hit water.
+     */
     void GotMoist()
     {
         if (finished) { return; }
@@ -302,11 +339,23 @@ public class PlayerController : MonoBehaviour
         wetPenaltyMultiplier = playerVariables.wetPenaltyForceMultiplier;
     }
 
+    /* Breathe
+     *  Arguments: -
+     *  
+     *  Refreshes oxygen to full, so if you leave water for even a moment the counter resets.
+     */
     public void Breathe()
     {
         submergedOxygen = playerVariables.startingOxygen;
     }
-    
+
+    /* Player Slide Stop
+     *  Arguments: -
+     *  
+     *  Resets slide related variables that might interfere with the next slide instance.
+     *  Levaes some intact, if used by things like animations.
+     *  Returns: BOOL, stop was made if true, false if no stop was needed.
+     */
     bool PlayerSlideStop()
     {
         if (storedSlide == null) { return false; }
@@ -322,11 +371,17 @@ public class PlayerController : MonoBehaviour
         transform.SetParent(null);
         return true;
     }
+    // Invoked by PlayerSlideStop, releases a slide after a duration.
     void ReleaseSlide()
     {
         spamPrevention = null;
     }
 
+    /* Water Bounce
+     *  Arguments: -
+     *  
+     *  A method to make the player skip across water if in high enough forward velocity.
+     */
     public void WaterBounce()
     {
         if (Mathf.Abs(playerPhysics.velocity.x) < 6f) { return; }
@@ -336,8 +391,9 @@ public class PlayerController : MonoBehaviour
     }
 
     /* Player Jump
+     *  Arguments: ignoreCheck : if True, ignores checking ground and valid jump amount.
      *  
-     *  Does not handle input directly.
+     *  Makes the player jump.
      */
     void PlayerJump(bool ignoreCheck = false)
     {
@@ -350,6 +406,11 @@ public class PlayerController : MonoBehaviour
         HaveJumped?.Invoke();
     }
 
+    /* Player Jump Off Slide
+     *  Arguments: normal On Slide : a perpendicular vector off the slide.
+     *  
+     *  Makes the player jump off the slide based on the normal of the slide.
+     */
     void PlayerJumpOffSlide(Vector2 normalOnSlide)
     {
         playerPhysics.velocity = playerPhysics.velocity + ((normalOnSlide) * previousStoredDirection * playerVariables.jumpVelocity);

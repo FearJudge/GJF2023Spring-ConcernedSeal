@@ -2,6 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/* 
+ * A quick and dirty way to produce fake depth in 2d scenes.
+ * is paired with IWaterRisable for parallaxing objects that also rise with global water level.
+ * (So largely for background and foreground water)
+ */
 public class ParallaxBG : MonoBehaviour, WaterRiseScript.IWaterRisable
 {
     public float scrollingSpeed = 1f;

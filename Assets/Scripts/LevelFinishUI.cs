@@ -3,6 +3,10 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
+/* 
+ * A class that handles level finishing ui components.
+ * Not the cleanest implementation, but it gets the job done.
+ */
 public class LevelFinishUI : MonoBehaviour
 {
     const float WAIT = 0.7f;

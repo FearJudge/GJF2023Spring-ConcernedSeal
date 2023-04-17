@@ -3,6 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.U2D;
 
+/* 
+ * A class that handles setting up background for platforms.
+ * The IcebergSettings allow control over offsets.
+ */
 public class AutoPlatformBG : MonoBehaviour
 {
     public SpriteShapeController backgroundIceBerg;
@@ -27,7 +31,11 @@ public class AutoPlatformBG : MonoBehaviour
         if (setZOrderBasedOnYHeight) { ArrangeBackground(); }
     }
 
-    // Automatically generate all slide section's iceberg texture underneath the slide section.
+    /* Generate Background
+     *  Arguments: -
+     *  
+     *  Automatically generate all slide section's iceberg texture underneath the slide section.
+     */
     void GenerateBackground()
     {
         void SetTangentOfSplinePoint(int index)
@@ -69,6 +77,11 @@ public class AutoPlatformBG : MonoBehaviour
         backgroundIceBerg.spriteShapeRenderer.SetLocalAABB(spriteshapeLocalBounds);
     }
 
+    /* Arrange Background
+     *  Arguments: -
+     *  
+     *  Sets Z Order based on transform position if needed.
+     */
     void ArrangeBackground()
     {
         bool isValid = TryGetComponent<SpriteShapeRenderer>(out SpriteShapeRenderer ssr_platform);

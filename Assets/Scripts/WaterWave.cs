@@ -2,6 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/* 
+ * A wave used to knock over fragile platforms.
+ */
 public class WaterWave : MonoBehaviour
 {
     public Vector2 movementSpeed = new Vector2(2f, 0f);

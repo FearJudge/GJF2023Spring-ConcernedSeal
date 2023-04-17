@@ -2,6 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/* 
+ * A class that handles scoring.
+ * Calculates Bonuses at the end of the stage.
+ */
 public class ScoreScript : MonoBehaviour
 {
     const long BONUSGOLD = 30000;

@@ -2,6 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/* 
+ * A class that handles collectables based on score.
+ * When picked up, increases score.
+ * Can be flagged as golden. Golden bubbles have a bonus applied if all are collected.
+ */
 public class CollectablePoints : MonoBehaviour
 {
     public static int goldenBubbles = 0;

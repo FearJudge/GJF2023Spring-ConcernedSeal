@@ -2,6 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/* 
+ * A class that handles loading of stages.
+ * Was also intended to keep custom lists for a potential level editor implementation,
+ * but ran out of time.
+ */
 public static class LevelManager
 {
     const string LEVELPREFIX = "Stage";
@@ -21,12 +26,14 @@ public static class LevelManager
         return string.Format("{0}{1}{2}", LEVELPREFIX, LEVELSEPERATOR, currentLevelNum.ToString(string.Format("D{0}", LEVELNUMBEROFDIGITS)));
     }
 
+    // UNUSED
     public static string GetNextCustomLevelData()
     {
         currentLevelNum++;
         return customLevelDataList[currentLevelNum];
     }
 
+    // UNUSED
     public static bool NextCustomLevelExists()
     {
         return (currentLevelNum + 1 <= customLevelDataList.Count);

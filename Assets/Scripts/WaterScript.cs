@@ -2,6 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/* 
+ * A script that raises water level.
+ * Could be used to store the water level in between levels, however this proved to be
+ * hard to balance around in a lengthier game.
+ */
 public class WaterScript : MonoBehaviour, WaterRiseScript.IWaterRisable
 {
     public bool isPartOfGlobalWaterPool = true;
