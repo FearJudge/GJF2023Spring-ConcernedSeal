@@ -14,6 +14,7 @@ public class GameOptions : MonoBehaviour
     public Slider volSlider;
     public TMPro.TextMeshProUGUI sfxPerc;
     public TMPro.TextMeshProUGUI volPerc;
+    public TMPro.TMP_Dropdown resolutionMenu;
 
     public void OnEnable()
     {
@@ -48,5 +49,22 @@ public class GameOptions : MonoBehaviour
     public void ToggleFullscreen()
     {
         Screen.fullScreen = !Screen.fullScreen;
+    }
+
+    public void GetScreenResolutions()
+    {
+        List<string> resolutionStrings = new List<string>();
+        resolutionMenu.ClearOptions();
+        for (int a = 0; a < Screen.resolutions.Length; a++)
+        {
+            resolutionStrings.Add(Screen.resolutions[a].ToString());
+        }
+        resolutionMenu.AddOptions(resolutionStrings);
+    }
+
+    public void ChangeResolution(int index)
+    {
+        Resolution r = Screen.resolutions[index];
+        Screen.SetResolution(r.width, r.height, Screen.fullScreen, r.refreshRate);
     }
 }

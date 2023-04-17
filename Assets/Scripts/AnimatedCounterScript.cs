@@ -58,6 +58,12 @@ public class AnimatedCounterScript : MonoBehaviour
         CheckMode();
     }
 
+    private void OnEnable()
+    {
+        if (animating) { animating = false; }
+        CheckMode();
+    }
+
     void CheckMode()
     {
         if (animating) { return; }

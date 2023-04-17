@@ -11,6 +11,7 @@ public class LevelLoader : MonoBehaviour
     public delegate void LevelStateChanged();
     public static event LevelStateChanged LevelCanStart;
     public static event LevelStateChanged LevelEnds;
+    public static event LevelStateChanged LevelUnPaused;
 
     public static bool pausedPlayer = false;
     public bool isPreloaded = true;
@@ -103,9 +104,10 @@ public class LevelLoader : MonoBehaviour
      */
     public static void PlayerIndicatesPauseChange(bool state)
     {
+        if (instance.waitForDown || instance.lockFailureSuccess) { return; }
         instance.showWhenPausing.SetActive(state);
         if (state) { Time.timeScale = 0f; instance.hideWhenShowingAny.SetActive(false); }
-        else { Time.timeScale = 1f; instance.hideWhenShowingAny.SetActive(true); }
+        else { Time.timeScale = 1f; instance.hideWhenShowingAny.SetActive(true); LevelUnPaused?.Invoke(); }
     }
 
     /* Player Has Succeeded

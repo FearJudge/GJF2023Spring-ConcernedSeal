@@ -96,7 +96,7 @@ public class PlayerAnimator : MonoBehaviour
 
         if (slideParticles.isStopped) { slideParticles.Play(); slideSound = SoundManager.PlaySound("slide"); }
         Vector2 ridingAngle = controller.storedNormal;
-        playerCharacter.transform.localRotation = Quaternion.AngleAxis(controller.storedDirection > 0
+        playerCharacter.transform.localRotation = Quaternion.AngleAxis(controller.lastStoredDirection >= 0
             ? Vector2.SignedAngle(Vector2.up, ridingAngle) : Vector2.SignedAngle(Vector2.up, -ridingAngle), Vector3.forward);
         playerCharacter.transform.localPosition = new Vector3(Mathf.Clamp(controller.storedDirection * ridingAngle.x * xLimits, -xLimits, xLimits),
             Mathf.Clamp(controller.storedDirection * ridingAngle.y * yLimits, -yLimits, 0f), 0f);

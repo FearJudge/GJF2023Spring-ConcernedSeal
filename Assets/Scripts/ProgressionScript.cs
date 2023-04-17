@@ -36,6 +36,11 @@ public class ProgressionScript : MonoBehaviour
         FinishLine.PlayerProgressChanged -= ChangePlayerProgress;
     }
 
+    private void OnEnable()
+    {
+        if (lockedCoroutine) { lockedCoroutine = false; FinishLine.PlayerProgressChanged += ChangePlayerProgress; }
+    }
+
     void ChangePlayerProgress(float val)
     {
         targetValue = val;

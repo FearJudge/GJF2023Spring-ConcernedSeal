@@ -15566,6 +15566,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: LevelExit
       objectReference: {fileID: 0}
+    - target: {fileID: 1886452051566771487, guid: b0b2bdd847217fa4b84b2f0a7d43de24, type: 3}
+      propertyPath: levelPar
+      value: 42
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b0b2bdd847217fa4b84b2f0a7d43de24, type: 3}
 --- !u!1001 &3476154265186806775

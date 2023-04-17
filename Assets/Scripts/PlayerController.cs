@@ -68,6 +68,7 @@ public class PlayerController : MonoBehaviour
     [HideInInspector] public Vector2 storedVelocity = Vector2.zero;
     [HideInInspector] public Vector2 storedNormal = Vector2.up;
     [HideInInspector] public int storedIndex = -1;
+    public int lastStoredDirection = 0;
     int currentStoredDirection = 0;
     int previousStoredDirection = 0;
     [HideInInspector] public int storedDirection { get { return currentStoredDirection; } set { currentStoredDirection = value; if (value != 0) { previousStoredDirection = value; } } }
@@ -114,6 +115,7 @@ public class PlayerController : MonoBehaviour
         if (LevelLoader.pausedPlayer && !amPaused) { playerPhysics.isKinematic = true; playerPhysics.velocity = Vector2.zero; amPaused = true; return; }
         else if (!LevelLoader.pausedPlayer && amPaused) { playerPhysics.isKinematic = false; amPaused = false; }
         else if (LevelLoader.pausedPlayer) { return; }
+        if (Time.timeScale == 0f) { return; }
 
         CheckCollisionToGround(out collisionsWithFeet, out platformsStandingOnCount, false);
         StickToMovingPlatforms();
@@ -181,6 +183,8 @@ public class PlayerController : MonoBehaviour
 
         void ProgressExistingSlide()
         {
+            if (Time.deltaTime == 0f) { return; } // Paused causes a 0 time.
+            lastStoredDirection = storedDirection;
             slidingTime += Time.deltaTime;
             playerPhysics.isKinematic = true;
             playerPhysics.velocity = Vector2.zero;
